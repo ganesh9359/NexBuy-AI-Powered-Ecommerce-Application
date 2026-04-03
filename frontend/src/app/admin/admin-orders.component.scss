@@ -89,10 +89,26 @@ button[disabled] {
   gap: 0.45rem;
 }
 
+.return-actions {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.4rem;
+}
+
 .ghost-btn {
   background: #fff;
   color: #0f172a;
   border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.approve-btn {
+  border-color: rgba(34, 197, 94, 0.24);
+  color: #166534;
+}
+
+.reject-btn {
+  border-color: rgba(239, 68, 68, 0.24);
+  color: #b91c1c;
 }
 
 .locked-chip {

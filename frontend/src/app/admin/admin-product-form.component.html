@@ -50,8 +50,13 @@
         </select>
       </label>
       <label>
-        <span>Price (cents)</span>
+        <span>Sale price (cents)</span>
         <input type="number" [(ngModel)]="form.priceCents" />
+      </label>
+      <label>
+        <span>Compare at price (cents)</span>
+        <input type="number" [(ngModel)]="form.compareAtCents" placeholder="Optional original price" />
+        <small *ngIf="discountPercent">Discount {{ discountPercent }}% off</small>
       </label>
       <label>
         <span>Stock quantity</span>
@@ -133,8 +138,11 @@
     <p class="eyebrow">Live preview</p>
     <img [src]="previewImage" [alt]="form.title || 'Preview'" />
     <h5>{{ form.title || 'Your product title' }}</h5>
-    <p>{{ form.categoryName || 'Select category' }}<span *ngIf="form.brandName"> • {{ form.brandName }}</span></p>
+    <p>{{ form.categoryName || 'Select category' }}<span *ngIf="form.brandName"> | {{ form.brandName }}</span></p>
     <strong>{{ form.priceCents / 100 | currency:'INR':'symbol':'1.2-2' }}</strong>
+    <small *ngIf="form.compareAtCents && form.compareAtCents > form.priceCents">
+      Was {{ form.compareAtCents / 100 | currency:'INR':'symbol':'1.2-2' }} and now {{ discountPercent }}% off
+    </small>
     <small *ngIf="isUploading">Uploading media...</small>
     <small *ngIf="tagsText.trim()">Tags: {{ tagsText }}</small>
     <div class="preview-strip" *ngIf="galleryItems.length">

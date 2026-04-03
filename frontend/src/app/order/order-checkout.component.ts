@@ -18,7 +18,7 @@ export class OrderCheckoutComponent implements OnInit {
   selectedShippingId?: number;
   selectedBillingId?: number;
   billingSameAsShipping = true;
-  selectedProvider = 'stripe';
+  selectedProvider = 'cod';
   addressForm: UpsertAddressRequest = {
     label: 'Home',
     line1: '',
@@ -88,8 +88,6 @@ export class OrderCheckoutComponent implements OnInit {
         return 'Pay securely in Razorpay test checkout and verify the payment on the server.';
       case 'cod':
         return 'Place the order now and pay when the shipment arrives at your address.';
-      case 'stripe':
-        return 'Continue to the local payment step after the order is created.';
       default:
         return 'Choose how you would like to complete the order.';
     }
@@ -101,8 +99,6 @@ export class OrderCheckoutComponent implements OnInit {
         return 'Recommended for instant confirmation';
       case 'cod':
         return 'Best if you prefer payment on delivery';
-      case 'stripe':
-        return 'Available as a local simulation path in this build';
       default:
         return 'Provider available';
     }
@@ -118,7 +114,7 @@ export class OrderCheckoutComponent implements OnInit {
       case 'razorpay':
         return 'Continue to Razorpay';
       default:
-        return 'Place order and continue';
+        return 'Place order';
     }
   }
 
@@ -202,7 +198,7 @@ export class OrderCheckoutComponent implements OnInit {
     this.orderService.getCheckout().subscribe({
       next: (checkout) => {
         const addresses = checkout.addresses ?? [];
-        const availableProviders = checkout.availableProviders?.length ? checkout.availableProviders : ['cod', 'stripe'];
+        const availableProviders = checkout.availableProviders?.length ? checkout.availableProviders : ['cod'];
         const recommendedProvider = checkout.recommendedProvider || availableProviders[0] || 'cod';
 
         this.checkout = {

@@ -19,11 +19,33 @@
         <span class="category">{{ product.categoryName || 'General' }}</span>
         <span class="brand" *ngIf="product.brandName">{{ product.brandName }}</span>
         <h5>{{ product.title }}</h5>
-        <p class="price">{{ formatPrice(product.priceCents) }}</p>
+        <div class="price-stack">
+          <p class="price">{{ formatPrice(product.priceCents) }}</p>
+          <p class="compare-price" *ngIf="product.compareAtCents && product.compareAtCents > product.priceCents">
+            {{ formatPrice(product.compareAtCents) }} | {{ discountPercent(product) }}% off
+          </p>
+        </div>
         <p class="meta">Stock: {{ product.stockQty }} | {{ product.status }}</p>
         <p class="meta" *ngIf="product.media?.length">Gallery: {{ product.media.length }} image{{ product.media.length > 1 ? 's' : '' }}</p>
         <div class="tag-row" *ngIf="product.tags?.length">
           <span *ngFor="let tag of product.tags | slice:0:3">{{ tag }}</span>
+        </div>
+        <div class="quick-stock">
+          <div class="quick-stock-head">
+            <strong>Quick stock</strong>
+            <span>{{ product.stockQty }} available</span>
+          </div>
+          <div class="quick-stock-actions">
+            <button type="button" class="ghost-btn" (click)="applyQuickStock(product, 5)" [disabled]="stockSavingId === product.id">+5</button>
+            <button type="button" class="ghost-btn" (click)="applyQuickStock(product, 10)" [disabled]="stockSavingId === product.id">+10</button>
+            <button type="button" class="ghost-btn" (click)="applyQuickStock(product, 25)" [disabled]="stockSavingId === product.id">+25</button>
+          </div>
+          <div class="stock-setter">
+            <input type="number" min="0" [ngModel]="quickStockValue(product.id)" (ngModelChange)="quickStockInputs[product.id] = $event" placeholder="Set stock" />
+            <button type="button" class="secondary-btn" (click)="setQuickStock(product)" [disabled]="stockSavingId === product.id">
+              {{ stockSavingId === product.id ? 'Saving...' : 'Set' }}
+            </button>
+          </div>
         </div>
         <div class="card-actions">
           <button type="button" class="edit-btn" (click)="editProduct(product.id)">Edit</button>

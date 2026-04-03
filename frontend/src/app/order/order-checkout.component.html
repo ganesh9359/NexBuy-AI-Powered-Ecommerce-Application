@@ -30,30 +30,6 @@
   <ng-container *ngIf="!loading && checkout as view">
     <div class="checkout-layout">
       <section class="checkout-main">
-        <section class="panel-block account-panel">
-          <div class="section-head compact-head">
-            <div>
-              <p class="eyebrow">Account snapshot</p>
-              <h2>Everything needed for this purchase is lined up here.</h2>
-            </div>
-          </div>
-
-          <div class="account-grid">
-            <div class="account-stat">
-              <span class="meta-label">Contact</span>
-              <strong>{{ view.profile.email }}</strong>
-            </div>
-            <div class="account-stat">
-              <span class="meta-label">Items</span>
-              <strong>{{ view.cart.totals.itemCount }} in this order</strong>
-            </div>
-            <div class="account-stat">
-              <span class="meta-label">Preferred payment</span>
-              <strong>{{ providerTitle(view.recommendedProvider) }}</strong>
-            </div>
-          </div>
-        </section>
-
         <section class="panel-block">
           <div class="section-head">
             <div>

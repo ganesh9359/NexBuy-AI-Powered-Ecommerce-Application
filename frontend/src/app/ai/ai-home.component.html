@@ -11,65 +11,6 @@
     </div>
   </header>
 
-  <section class="overview-strip">
-    <article class="overview-tile spotlight">
-      <span>Recommendation mode</span>
-      <strong>{{ recommendationMode }}</strong>
-      <small>{{ data.personalized ? 'Built from your search, cart, and order activity.' : 'Built from live storefront demand and stock.' }}</small>
-    </article>
-    <article class="overview-tile">
-      <span>Products surfaced</span>
-      <strong>{{ recommendationCount }}</strong>
-      <small>Only live catalog items with real media, price, and stock.</small>
-    </article>
-    <article class="overview-tile">
-      <span>Signal sources</span>
-      <strong>{{ data.signals.length || 1 }}</strong>
-      <small>{{ data.signals.length ? 'Recent behavioral signals influenced this round.' : 'Using current storefront performance as the signal.' }}</small>
-    </article>
-  </section>
-
-  <section class="curation-grid">
-    <article class="story-panel">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">Why these products</p>
-          <h2>Signals behind this recommendation set.</h2>
-        </div>
-      </div>
-      <div class="signal-list" *ngIf="data.signals.length; else fallbackSignalsTpl">
-        <div class="signal-row" *ngFor="let signal of data.signals; trackBy: trackByText">
-          <span class="signal-dot"></span>
-          <p>{{ signal }}</p>
-        </div>
-      </div>
-      <ng-template #fallbackSignalsTpl>
-        <div class="signal-list">
-          <div class="signal-row">
-            <span class="signal-dot"></span>
-            <p>Live order flow, in-stock inventory, and current product freshness are driving this list.</p>
-          </div>
-        </div>
-      </ng-template>
-    </article>
-
-    <aside class="workflow-panel">
-      <p class="eyebrow">How NexBuy AI curates</p>
-      <div class="workflow-step">
-        <strong>01. Read activity</strong>
-        <p>Recent search terms, carts, orders, and product openings inform the direction.</p>
-      </div>
-      <div class="workflow-step">
-        <strong>02. Protect utility</strong>
-        <p>Only products with current pricing, media, and real stock survive the shortlist.</p>
-      </div>
-      <div class="workflow-step">
-        <strong>03. Keep it shoppable</strong>
-        <p>The result is a clean set of products you can open and buy right now.</p>
-      </div>
-    </aside>
-  </section>
-
   <section class="recommendation-grid">
     <a class="product-tile" *ngFor="let product of data.products; trackBy: trackBySlug" [routerLink]="['/product', product.slug]">
       <div class="product-media">

@@ -84,7 +84,7 @@ export class PaymentHomeComponent implements OnInit {
 
   get supportCopy(): string {
     return this.isRazorpayProvider
-      ? 'Tap the button below. We will open a secure Razorpay window and bring you back automatically after payment.'
+      ? ''
       : 'Review the order total and confirm the payment to move this order forward.';
   }
 

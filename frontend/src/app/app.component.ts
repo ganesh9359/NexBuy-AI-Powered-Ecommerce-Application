@@ -5,7 +5,7 @@ import { AuthService, AuthResponse } from './auth/core/auth.service';
 import { STORE_CATEGORIES } from './shared/store-categories';
 import { environment } from '../environments/environment';
 import { CatalogCategory, CatalogProductCard, ProductApiService } from './product/product-api.service';
-import { AiChatResponse, AiOrderPreview, AiService } from './ai/ai.service';
+import { AiChatResponse, AiOrderPreview, AiSearchInterpretation, AiService } from './ai/ai.service';
 
 type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 type PasswordField = 'login' | 'register' | 'registerConfirm' | 'reset' | 'resetConfirm';
@@ -36,17 +36,21 @@ export class AppComponent implements OnInit, OnDestroy {
   storeCategories: CatalogCategory[] = this.buildFallbackCategories();
   searchQuery = '';
   isMenuOpen = false;
-  isLight = false;
+  isLight = true;
   voiceListening = false;
   imagePreview = '';
   selectedSearchImageFile?: File;
   searchBusy = false;
   searchStatus = '';
   chatbotOpen = false;
+  chatLanguageMenuOpen = false;
   chatLanguage: AssistantLanguage = 'en';
   chatInput = '';
   chatBusy = false;
   chatMessages: ShellChatMessage[] = [];
+  newsletterEmail = '';
+  newsletterStatus = '';
+  newsletterStatusTone: 'success' | 'error' = 'success';
 
   showLoginModal = false;
   showProfileMenu = false;
@@ -94,6 +98,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.initializeTheme();
     this.refreshAuthState();
     this.loadStoreCategories();
     this.chatMessages = [this.createAssistantWelcome()];
@@ -106,6 +111,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.stopHeaderVoiceSearch();
       this.clearSelectedSearchImage(false);
       this.searchStatus = '';
+      this.chatLanguageMenuOpen = false;
     });
 
     this.route.queryParamMap.subscribe((params) => {
@@ -150,12 +156,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   toggleTheme(): void {
     this.isLight = !this.isLight;
-    const root = document.documentElement;
-    if (this.isLight) {
-      root.classList.add('light-theme');
-    } else {
-      root.classList.remove('light-theme');
-    }
+    this.applyThemeClass();
+    localStorage.setItem('nexbuy-theme', this.isLight ? 'light' : 'dark');
   }
 
   submitSearch(): void {
@@ -173,7 +175,21 @@ export class AppComponent implements OnInit, OnDestroy {
       this.router.navigate(['/product/catalog']);
       return;
     }
-    this.router.navigate(['/product/search'], { queryParams: { q: query } });
+
+    this.searchBusy = true;
+    this.searchStatus = 'Understanding your search...';
+    this.aiService.assistSearch(query).subscribe({
+      next: (response) => {
+        this.searchBusy = false;
+        this.searchStatus = response.summary || '';
+        this.navigateFromInterpretation(query, response.interpretation, response.products, true);
+      },
+      error: () => {
+        this.searchBusy = false;
+        this.searchStatus = '';
+        this.router.navigate(['/product/search'], { queryParams: { q: query } });
+      }
+    });
   }
 
   toggleVoiceSearch(): void {
@@ -270,23 +286,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.aiService.imageSearch(this.selectedSearchImageFile, hint).subscribe({
       next: (response) => {
-        const nextQuery = (response.extractedHint || hint || response.products?.[0]?.title || '').trim();
         this.searchBusy = false;
+        if (!response.products?.length) {
+          this.searchStatus = response.summary || 'No strong visual match yet. Add a hint and try again.';
+          return;
+        }
+
         this.clearSelectedSearchImage(false);
-        this.searchQuery = nextQuery;
+        this.searchQuery = (response.extractedHint || hint || '').trim();
         this.searchStatus = '';
-
-        if (nextQuery) {
-          this.router.navigate(['/product/search'], { queryParams: { q: nextQuery } });
-          return;
-        }
-
-        if (response.products?.length) {
-          this.router.navigate(['/product', response.products[0].slug]);
-          return;
-        }
-
-        this.router.navigate(['/product/catalog']);
+        this.navigateFromInterpretation(this.searchQuery, response.interpretation, response.products, false);
       },
       error: (err) => {
         this.searchBusy = false;
@@ -296,15 +305,20 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   openChatbot(): void {
-    this.chatbotOpen = true;
+    this.chatLanguageMenuOpen = true;
   }
 
   toggleChatbot(): void {
-    this.chatbotOpen = !this.chatbotOpen;
+    if (this.chatbotOpen) {
+      this.closeChatbot();
+      return;
+    }
+    this.chatLanguageMenuOpen = !this.chatLanguageMenuOpen;
   }
 
   closeChatbot(): void {
     this.chatbotOpen = false;
+    this.chatLanguageMenuOpen = false;
   }
 
   setChatLanguage(language: AssistantLanguage): void {
@@ -328,6 +342,13 @@ export class AppComponent implements OnInit, OnDestroy {
     ];
   }
 
+  startChat(language: AssistantLanguage): void {
+    this.chatLanguage = language;
+    this.chatMessages = [this.createAssistantWelcome()];
+    this.chatLanguageMenuOpen = false;
+    this.chatbotOpen = true;
+  }
+
   sendChat(prompt?: string): void {
     const message = (prompt ?? this.chatInput).trim();
     if (!message || this.chatBusy) {
@@ -343,6 +364,13 @@ export class AppComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.chatMessages = [...this.chatMessages, this.toAssistantEntry(response)];
         this.chatBusy = false;
+        if (response.targetUrl) {
+          window.setTimeout(() => {
+            this.chatbotOpen = false;
+            this.chatLanguageMenuOpen = false;
+            this.router.navigateByUrl(response.targetUrl as string);
+          }, 300);
+        }
       },
       error: (err) => {
         this.chatMessages = [
@@ -673,6 +701,59 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  private navigateFromInterpretation(
+    fallbackQuery: string,
+    interpretation?: AiSearchInterpretation | null,
+    products?: CatalogProductCard[] | null,
+    allowFallback = true
+  ): void {
+    const effectiveQuery = (interpretation?.query || fallbackQuery || '').trim();
+    const route: string[] = interpretation?.category && !effectiveQuery
+      ? ['/product/category', interpretation.category]
+      : effectiveQuery
+        ? ['/product/search']
+        : ['/product/catalog'];
+
+    const queryParams: Record<string, string | number | boolean> = {};
+    if (effectiveQuery && route[0] !== '/product/category') {
+      queryParams['q'] = effectiveQuery;
+    }
+    if (interpretation?.brand) {
+      queryParams['brand'] = interpretation.brand;
+    }
+    if (interpretation?.tag) {
+      queryParams['tag'] = interpretation.tag;
+    }
+    if (interpretation?.minPrice !== undefined && interpretation.minPrice !== null) {
+      queryParams['minPrice'] = interpretation.minPrice;
+    }
+    if (interpretation?.maxPrice !== undefined && interpretation.maxPrice !== null) {
+      queryParams['maxPrice'] = interpretation.maxPrice;
+    }
+    if (interpretation?.inStock) {
+      queryParams['inStock'] = true;
+    }
+    if (interpretation?.sort && interpretation.sort !== 'relevance' && interpretation.sort !== 'newest') {
+      queryParams['sort'] = interpretation.sort;
+    }
+
+    if (!Object.keys(queryParams).length && !effectiveQuery && products?.length === 1) {
+      this.router.navigate(['/product', products[0].slug]);
+      return;
+    }
+
+    if (!allowFallback && !products?.length) {
+      return;
+    }
+
+    if (!Object.keys(queryParams).length && !effectiveQuery && route[0] === '/product/catalog') {
+      this.router.navigate(['/product/catalog']);
+      return;
+    }
+
+    this.router.navigate(route, { queryParams });
+  }
+
   formatPrice(cents?: number | null): string {
     return this.currency.format((cents ?? 0) / 100);
   }
@@ -765,6 +846,37 @@ export class AppComponent implements OnInit, OnDestroy {
     return 'You can ask in English, Hindi, or Marathi.';
   }
 
+  openSupportTopic(topic: 'help' | 'shipping' | 'returns'): void {
+    const prompt = topic === 'shipping'
+      ? 'Help me with shipping and delivery'
+      : topic === 'returns'
+        ? 'How do returns and refunds work on NexBuy?'
+        : 'Help me use NexBuy';
+
+    if (!this.chatbotOpen) {
+      this.chatLanguageMenuOpen = false;
+      this.chatbotOpen = true;
+      if (!this.chatMessages.length) {
+        this.chatMessages = [this.createAssistantWelcome()];
+      }
+    }
+
+    this.sendChat(prompt);
+  }
+
+  subscribeNewsletter(): void {
+    const email = this.newsletterEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.newsletterStatusTone = 'error';
+      this.newsletterStatus = 'Enter a valid email address first.';
+      return;
+    }
+
+    this.newsletterEmail = '';
+    this.newsletterStatusTone = 'success';
+    this.newsletterStatus = 'You are on the NexBuy updates list now.';
+  }
+
   private languagePrompts(language: AssistantLanguage): string[] {
     if (language === 'hi') {
       return ['Show phones under 30000', 'Track my latest order', 'Show best deals today'];
@@ -783,5 +895,20 @@ export class AppComponent implements OnInit, OnDestroy {
       return 'Okay, I will continue helping in Marathi.';
     }
     return 'Sure, I will help in English now.';
+  }
+
+  private initializeTheme(): void {
+    const savedTheme = localStorage.getItem('nexbuy-theme');
+    this.isLight = savedTheme !== 'dark';
+    this.applyThemeClass();
+  }
+
+  private applyThemeClass(): void {
+    const root = document.documentElement;
+    if (this.isLight) {
+      root.classList.add('light-theme');
+    } else {
+      root.classList.remove('light-theme');
+    }
   }
 }

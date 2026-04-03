@@ -254,31 +254,37 @@
       </div>
       <div>
         <h4>Support</h4>
-        <a>Help center</a>
-        <a>Shipping</a>
-        <a>Returns</a>
-        <a>Track order</a>
+        <button type="button" class="footer-link" (click)="openSupportTopic('help')">Help center</button>
+        <button type="button" class="footer-link" (click)="openSupportTopic('shipping')">Shipping</button>
+        <button type="button" class="footer-link" (click)="openSupportTopic('returns')">Returns</button>
+        <a routerLink="/order">Track order</a>
       </div>
       <div>
         <h4>Stay updated</h4>
         <div class="newsletter">
-          <input placeholder="Email address" />
-          <button class="pill small">Join</button>
+          <input [(ngModel)]="newsletterEmail" placeholder="Email address" />
+          <button class="pill small" type="button" (click)="subscribeNewsletter()">Join</button>
         </div>
         <p class="muted">Get weekly deals and drops.</p>
+        <p class="newsletter-status" *ngIf="newsletterStatus" [class.error]="newsletterStatusTone === 'error'">{{ newsletterStatus }}</p>
       </div>
     </div>
     <div class="footer-bottom">(c) 2026 NexBuy. All rights reserved.</div>
   </footer>
 </ng-container>
 
-<div class="chatbot-shell" [class.open]="chatbotOpen">
-  <button type="button" class="chatbot-launcher" *ngIf="!chatbotOpen" (click)="toggleChatbot()">
-    <img src="assets/logo.svg" alt="NexBuy assistant" />
-    <div>
-      <strong>Ask NexBuy</strong>
-      <span>Help in English, Hindi, Marathi</span>
+<div class="chatbot-shell" [class.open]="chatbotOpen || chatLanguageMenuOpen">
+  <div class="chatbot-language-picker" *ngIf="!chatbotOpen && chatLanguageMenuOpen">
+    <p>Continue in</p>
+    <div class="language-stack">
+      <button type="button" (click)="startChat('en')">English</button>
+      <button type="button" (click)="startChat('hi')">Hindi</button>
+      <button type="button" (click)="startChat('mr')">Marathi</button>
     </div>
+  </div>
+
+  <button type="button" class="chatbot-launcher" *ngIf="!chatbotOpen" (click)="toggleChatbot()" title="Open NexBuy assistant">
+    <img src="assets/logo.svg" alt="NexBuy assistant" />
   </button>
 
   <section class="chatbot-panel" *ngIf="chatbotOpen">
@@ -286,8 +292,8 @@
       <div class="chatbot-brand">
         <img src="assets/logo.svg" alt="NexBuy assistant" />
         <div>
-          <strong>{{ chatLanguage === 'hi' ? 'NexBuy assistant - Hindi' : chatLanguage === 'mr' ? 'NexBuy assistant - Marathi' : 'NexBuy assistant' }}</strong>
-          <span>{{ chatLanguage === 'hi' ? 'Shopping and order help in Hindi' : chatLanguage === 'mr' ? 'Shopping and order help in Marathi' : 'Shopping and order help' }}</span>
+          <strong>{{ chatLanguage === 'hi' ? 'NexBuy assistant | Hindi' : chatLanguage === 'mr' ? 'NexBuy assistant | Marathi' : 'NexBuy assistant | English' }}</strong>
+          <span>Ask once, and I will take you to the right page.</span>
         </div>
       </div>
 
@@ -336,9 +342,9 @@
     </div>
 
     <div class="chatbot-composer">
-      <textarea [(ngModel)]="chatInput" rows="3" [placeholder]="chatLanguage === 'hi' ? 'Ask about orders, deals, or products in Hindi...' : chatLanguage === 'mr' ? 'Ask about orders, deals, or products in Marathi...' : 'Ask about orders, deals, or products...'" (keydown.control.enter)="sendChat()"></textarea>
+      <textarea [(ngModel)]="chatInput" rows="3" [placeholder]="chatLanguage === 'hi' ? 'Ask in Hindi or Hinglish...' : chatLanguage === 'mr' ? 'Ask in Marathi or English...' : 'Ask about products, orders, or deals...'" (keydown.control.enter)="sendChat()"></textarea>
       <div class="composer-meta">
-        <span>{{ chatLanguage === 'hi' ? 'Press Ctrl+Enter to send in Hindi' : chatLanguage === 'mr' ? 'Press Ctrl+Enter to send in Marathi' : 'Press Ctrl+Enter to send' }}</span>
+        <span>{{ chatLanguage === 'hi' ? 'Ctrl+Enter sends and then opens the right page' : chatLanguage === 'mr' ? 'Ctrl+Enter sends and then opens the right page' : 'Ctrl+Enter sends and opens the right page' }}</span>
         <button type="button" class="pill small" (click)="sendChat()" [disabled]="chatBusy">
           {{ chatBusy ? 'Thinking...' : 'Send' }}
         </button>

@@ -117,6 +117,9 @@
           <strong>{{ prettify(returnRequest.status) }}</strong>
           <span class="payment-chip" [ngClass]="'tone-' + toneFor(returnRequest.status)">{{ prettify(returnRequest.status) }}</span>
           <small>{{ returnNote(returnRequest) }}</small>
+          <small *ngIf="returnRefundLabel(returnRequest)">
+            {{ returnRefundLabel(returnRequest) }}
+          </small>
           <small *ngIf="returnRequest.reason">Reason: {{ returnRequest.reason }}</small>
           <small>Requested {{ formatDate(returnRequest.requestedAt) }}</small>
         </section>

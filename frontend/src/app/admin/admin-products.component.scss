@@ -109,6 +109,17 @@ h5 {
   font-weight: 700;
 }
 
+.price-stack {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.compare-price {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
 .meta {
   color: #475569;
   margin-bottom: 0.4rem;
@@ -127,6 +138,68 @@ h5 {
   background: rgba(15, 23, 42, 0.06);
   color: #334155;
   font-size: 0.78rem;
+}
+
+.quick-stock {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0.8rem 0 1rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  background: rgba(37, 99, 235, 0.04);
+  border: 1px solid rgba(37, 99, 235, 0.12);
+}
+
+.quick-stock-head,
+.quick-stock-actions,
+.stock-setter {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.quick-stock-head strong {
+  color: #0f172a;
+}
+
+.quick-stock-head span {
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.quick-stock-actions {
+  justify-content: flex-start;
+}
+
+.ghost-btn,
+.secondary-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.ghost-btn {
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.secondary-btn {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.stock-setter input {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 0.72rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .card-actions {

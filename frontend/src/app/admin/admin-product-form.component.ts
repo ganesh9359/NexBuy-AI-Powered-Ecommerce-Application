@@ -42,6 +42,7 @@ export class AdminProductFormComponent implements OnInit {
     tags: [],
     media: [],
     priceCents: 0,
+    compareAtCents: null,
     stockQty: 0
   };
 
@@ -93,6 +94,14 @@ export class AdminProductFormComponent implements OnInit {
 
   get galleryItems(): AdminProductMedia[] {
     return this.form.media || [];
+  }
+
+  get discountPercent(): number {
+    const compareAt = this.form.compareAtCents ?? 0;
+    if (!compareAt || compareAt <= this.form.priceCents) {
+      return 0;
+    }
+    return Math.round(((compareAt - this.form.priceCents) / compareAt) * 100);
   }
 
   get isUploading(): boolean {
@@ -249,6 +258,7 @@ export class AdminProductFormComponent implements OnInit {
       tags: this.parseTags(this.tagsText),
       media: this.normalizeMediaEntries(this.galleryItems, this.form.coverImage),
       priceCents: this.form.priceCents,
+      compareAtCents: this.normalizeCompareAtCents(this.form.compareAtCents, this.form.priceCents),
       stockQty: this.form.stockQty
     };
 
@@ -310,6 +320,7 @@ export class AdminProductFormComponent implements OnInit {
             product.coverImage || ''
           ),
           priceCents: product.priceCents,
+          compareAtCents: product.compareAtCents ?? null,
           stockQty: product.stockQty
         };
         this.tagsText = (product.tags || []).join(', ');
@@ -383,6 +394,20 @@ export class AdminProductFormComponent implements OnInit {
   private trimOrUndefined(value?: string): string | undefined {
     const trimmed = value?.trim();
     return trimmed ? trimmed : undefined;
+  }
+
+  private normalizeCompareAtCents(compareAtCents?: number | null, priceCents?: number): number | null {
+    if (compareAtCents === null || compareAtCents === undefined) {
+      return null;
+    }
+    const numeric = Number(compareAtCents);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+      return null;
+    }
+    if (priceCents !== undefined && numeric <= priceCents) {
+      return null;
+    }
+    return Math.round(numeric);
   }
 
   private sortBrands(brands: AdminBrand[]): AdminBrand[] {

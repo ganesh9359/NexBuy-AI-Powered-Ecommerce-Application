@@ -122,7 +122,7 @@ public class EmailService {
         sendHtml(to, "Your NexBuy order " + defaultString(orderNumber), "templates/email/order-receipt.html", vars, rawVars);
     }
 
-    public void sendOrderCancelled(String to, String orderNumber, boolean refundExpected) {
+    public void sendOrderCancelled(String to, String orderNumber, boolean refundExpected, Integer refundAmountCents) {
         sendOrderUpdate(
                 to,
                 "Your NexBuy order was cancelled",
@@ -134,8 +134,8 @@ public class EmailService {
                 refundExpected
                         ? "Open the order detail page to track the refund progress from request to completion."
                         : "You can return to the catalog at any time and place a fresh order.",
-                "Order number",
-                defaultString(orderNumber),
+                refundExpected ? "Refund amount" : "Order number",
+                refundExpected ? formatAmount(refundAmountCents) : defaultString(orderNumber),
                 "View order",
                 frontendUrl + "/order"
         );
@@ -275,6 +275,11 @@ public class EmailService {
                     .append("</td></tr>");
         }
         return itemsHtml.toString();
+    }
+
+    private String formatAmount(Integer amountCents) {
+        int cents = amountCents == null ? 0 : amountCents;
+        return String.format("INR %.2f", cents / 100.0);
     }
 
     private String purposeLabel(String purpose) {

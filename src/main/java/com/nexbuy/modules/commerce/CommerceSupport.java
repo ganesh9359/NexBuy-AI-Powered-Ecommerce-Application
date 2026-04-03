@@ -212,7 +212,6 @@ public class CommerceSupport {
             providers.add("razorpay");
         }
         providers.add("cod");
-        providers.add("stripe");
         String recommendedProvider = providers.contains("razorpay") ? "razorpay" : providers.get(0);
 
         return new OrderDto.CheckoutViewResponse(
@@ -383,6 +382,12 @@ public class CommerceSupport {
         }
         if (returnRequest != null) {
             events.add(buildReturnEvent(returnRequest));
+            if (refund == null) {
+                OrderDto.StatusEvent refundProgressEvent = buildReturnRefundEvent(returnRequest);
+                if (refundProgressEvent != null) {
+                    events.add(refundProgressEvent);
+                }
+            }
         }
 
         if ("failed".equals(orderStatus)) {
@@ -796,7 +801,7 @@ public class CommerceSupport {
             default -> refund.requestedAt();
         };
         String label = switch (refundStatus) {
-            case "processed" -> "Refund completed";
+            case "processed" -> "Refund done";
             case "failed" -> "Refund needs attention";
             default -> "Refund initiated";
         };
@@ -828,6 +833,25 @@ public class CommerceSupport {
             default -> "Your return request has been recorded and is waiting for review.";
         };
         return new OrderDto.StatusEvent("return_" + status, label, eventAt, detail);
+    }
+
+    private OrderDto.StatusEvent buildReturnRefundEvent(ReturnRequestRecord returnRequest) {
+        String refundStatus = normalizeLower(returnRequest.refundStatus());
+        if (refundStatus.isBlank() || "not_started".equals(refundStatus)) {
+            return null;
+        }
+
+        String label = switch (refundStatus) {
+            case "processed" -> "Refund done";
+            case "failed" -> "Refund needs attention";
+            default -> "Refund initiated";
+        };
+        String detail = switch (refundStatus) {
+            case "processed" -> "The refund for this return was sent back to the original payment method.";
+            case "failed" -> "The refund for this return needs support attention.";
+            default -> "The refund for this return is being processed now.";
+        };
+        return new OrderDto.StatusEvent("return_refund_" + refundStatus, label, returnRequest.updatedAt(), detail);
     }
 
     private LocalDateTime timestamp(ResultSet rs, String column, LocalDateTime fallback) throws SQLException {

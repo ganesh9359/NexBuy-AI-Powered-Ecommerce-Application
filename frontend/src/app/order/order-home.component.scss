@@ -231,3 +231,24 @@
     border-radius: 24px;
   }
 }
+
+.light-theme .orders-hero,
+.light-theme .state-card,
+.light-theme .empty-state,
+.light-theme .orders-board {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94));
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.07);
+}
+
+.light-theme .hero-copy h1,
+.light-theme .board-head h2,
+.light-theme .order-main h3 {
+  color: #0f172a;
+}
+
+.light-theme .stat-pill,
+.light-theme .order-row {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(148, 163, 184, 0.16);
+}

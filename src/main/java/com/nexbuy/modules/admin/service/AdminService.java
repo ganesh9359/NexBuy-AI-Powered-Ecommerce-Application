@@ -8,6 +8,8 @@ import com.nexbuy.modules.admin.dto.AdminOrderDto;
 import com.nexbuy.modules.admin.dto.AdminOrderStatusRequest;
 import com.nexbuy.modules.admin.dto.AdminProductDto;
 import com.nexbuy.modules.admin.dto.AdminProductRequest;
+import com.nexbuy.modules.admin.dto.AdminProductStockRequest;
+import com.nexbuy.modules.admin.dto.AdminReturnReviewRequest;
 import com.nexbuy.modules.admin.dto.AdminUserDto;
 import com.nexbuy.modules.order.dto.OrderDto;
 
@@ -23,9 +25,11 @@ public interface AdminService {
     List<AdminOrderDto> getOrders();
     OrderDto.OrderDetail getOrderDetail(Long orderId);
     AdminOrderDto updateOrderStatus(Long orderId, AdminOrderStatusRequest request);
+    OrderDto.OrderDetail reviewReturn(Long orderId, AdminReturnReviewRequest request);
     List<AdminProductDto> getProducts();
     AdminProductDto getProduct(Long productId);
     AdminProductDto createProduct(AdminProductRequest request);
     AdminProductDto updateProduct(Long productId, AdminProductRequest request);
+    AdminProductDto updateProductStock(Long productId, AdminProductStockRequest request);
     void deleteProduct(Long productId);
 }

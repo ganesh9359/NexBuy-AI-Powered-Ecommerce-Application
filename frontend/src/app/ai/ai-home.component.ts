@@ -24,14 +24,6 @@ export class AiHomeComponent implements OnInit {
     this.loadRecommendations();
   }
 
-  get recommendationMode(): string {
-    return this.recommendations?.personalized ? 'Personalized' : 'Live trend';
-  }
-
-  get recommendationCount(): number {
-    return this.recommendations?.products?.length || 0;
-  }
-
   openAssistant(): void {
     window.dispatchEvent(new CustomEvent('nexbuy:open-chatbot'));
   }
@@ -57,9 +49,5 @@ export class AiHomeComponent implements OnInit {
 
   trackBySlug(_index: number, product: CatalogProductCard): string {
     return product.slug;
-  }
-
-  trackByText(_index: number, value: string): string {
-    return value;
   }
 }

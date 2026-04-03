@@ -27,6 +27,9 @@ public class AdminProductRequest {
     private int priceCents;
 
     @Min(0)
+    private Integer compareAtCents;
+
+    @Min(0)
     private int stockQty;
 
     public String getTitle() {
@@ -123,6 +126,14 @@ public class AdminProductRequest {
 
     public void setPriceCents(int priceCents) {
         this.priceCents = priceCents;
+    }
+
+    public Integer getCompareAtCents() {
+        return compareAtCents;
+    }
+
+    public void setCompareAtCents(Integer compareAtCents) {
+        this.compareAtCents = compareAtCents;
     }
 
     public int getStockQty() {

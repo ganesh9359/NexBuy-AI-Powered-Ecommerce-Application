@@ -17,6 +17,7 @@ export class AdminOrdersComponent implements OnInit {
   statusFilter = 'ALL';
   error = '';
   detailError = '';
+  returnReviewingId: number | null = null;
   draftStatuses: Record<number, string> = {};
   orderDetails: Record<number, AdminOrderDetail> = {};
   readonly statuses = ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'FAILED'];
@@ -54,6 +55,10 @@ export class AdminOrdersComponent implements OnInit {
   canEditStatus(order: AdminOrder): boolean {
     const status = order.status.toUpperCase();
     return status !== 'DELIVERED' && status !== 'CANCELLED';
+  }
+
+  canReviewReturn(detail?: AdminOrderDetail | null): boolean {
+    return (detail?.returnRequest?.status || '').toUpperCase() === 'REQUESTED' && this.returnReviewingId === null;
   }
 
   isExpanded(order: AdminOrder): boolean {
@@ -116,6 +121,40 @@ export class AdminOrdersComponent implements OnInit {
     });
   }
 
+  reviewReturn(order: AdminOrder, action: 'approve' | 'reject'): void {
+    const detail = this.orderDetails[order.id];
+    if (!this.canReviewReturn(detail)) {
+      return;
+    }
+
+    const question = action === 'approve'
+      ? 'Approve this return and start the refund flow?'
+      : 'Reject this return request?';
+    if (!window.confirm(question)) {
+      return;
+    }
+
+    this.returnReviewingId = order.id;
+    this.detailError = '';
+    this.adminApi.reviewReturn(order.id, action).subscribe({
+      next: (updatedDetail) => {
+        this.orderDetails[order.id] = updatedDetail;
+        this.orders = this.orders.map((item) => item.id === order.id
+          ? {
+              ...item,
+              paymentStatus: updatedDetail.summary.paymentStatus,
+              status: updatedDetail.summary.status
+            }
+          : item);
+        this.returnReviewingId = null;
+      },
+      error: (err) => {
+        this.returnReviewingId = null;
+        this.detailError = err?.error?.message || 'Could not review this return request right now.';
+      }
+    });
+  }
+
   formatPrice(totalCents: number): string {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -126,6 +165,12 @@ export class AdminOrdersComponent implements OnInit {
 
   formatDate(value?: string): string {
     return value ? new Date(value).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+  }
+
+  prettify(value?: string): string {
+    return (value || 'Unknown')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
   private loadOrders(): void {

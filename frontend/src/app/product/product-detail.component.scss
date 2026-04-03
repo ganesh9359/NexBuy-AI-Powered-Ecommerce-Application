@@ -328,3 +328,37 @@
     border-radius: 22px;
   }
 }
+
+.light-theme .gallery-panel,
+.light-theme .purchase-panel,
+.light-theme .info-panel,
+.light-theme .related-panel,
+.light-theme .related-card,
+.light-theme .state-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94));
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.07);
+}
+
+.light-theme .purchase-panel h1,
+.light-theme .info-panel h2,
+.light-theme .title-link {
+  color: #0f172a;
+}
+
+.light-theme .hero-media,
+.light-theme .thumb,
+.light-theme .meta-grid div,
+.light-theme .fact-card,
+.light-theme .tag-chip,
+.light-theme .image-wrap {
+  background: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.light-theme .price-row strong,
+.light-theme .card-footer strong,
+.light-theme .save-chip,
+.light-theme .cart-notice {
+  color: var(--accent-strong);
+}

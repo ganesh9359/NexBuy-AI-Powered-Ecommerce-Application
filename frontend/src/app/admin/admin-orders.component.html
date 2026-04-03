@@ -115,6 +115,42 @@
                     <p>Placed: {{ formatDate(detail.summary.placedAt) }}</p>
                   </section>
 
+                  <section class="detail-card" *ngIf="detail.refund as refund">
+                    <p class="eyebrow">Refund</p>
+                    <strong>{{ prettify(refund.status) }}</strong>
+                    <p>Amount: {{ formatPrice(refund.amountCents) }}</p>
+                    <p *ngIf="refund.requestedAt">Requested: {{ formatDate(refund.requestedAt) }}</p>
+                    <p *ngIf="refund.processedAt">Completed: {{ formatDate(refund.processedAt) }}</p>
+                    <p *ngIf="refund.note">{{ refund.note }}</p>
+                  </section>
+
+                  <section class="detail-card" *ngIf="detail.returnRequest as returnRequest">
+                    <p class="eyebrow">Return request</p>
+                    <strong>{{ prettify(returnRequest.status) }}</strong>
+                    <p *ngIf="returnRequest.reason">Reason: {{ returnRequest.reason }}</p>
+                    <p>Refund: {{ prettify(returnRequest.refundStatus) }}</p>
+                    <p>Requested: {{ formatDate(returnRequest.requestedAt) }}</p>
+                    <p *ngIf="returnRequest.reviewedAt">Reviewed: {{ formatDate(returnRequest.reviewedAt) }}</p>
+                    <div class="return-actions" *ngIf="canReviewReturn(detail)">
+                      <button
+                        type="button"
+                        class="ghost-btn approve-btn"
+                        (click)="reviewReturn(order, 'approve')"
+                        [disabled]="returnReviewingId === order.id"
+                      >
+                        {{ returnReviewingId === order.id ? 'Saving...' : 'Approve return & refund' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="ghost-btn reject-btn"
+                        (click)="reviewReturn(order, 'reject')"
+                        [disabled]="returnReviewingId === order.id"
+                      >
+                        Reject return
+                      </button>
+                    </div>
+                  </section>
+
                   <section class="detail-card timeline-card">
                     <p class="eyebrow">Timeline</p>
                     <div class="timeline-entry" *ngFor="let event of detail.timeline">

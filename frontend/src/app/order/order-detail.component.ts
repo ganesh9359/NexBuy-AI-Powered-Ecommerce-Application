@@ -74,7 +74,7 @@ export class OrderDetailComponent implements OnInit {
 
   canReturn(order?: OrderDetail): boolean {
     const status = this.normalize(order?.summary.status);
-    return !!order && !this.returning && status === 'delivered' && !order.returnRequest;
+    return !!order && !this.returning && status === 'delivered' && !order.returnRequest && !this.isReturnWindowExpired(order);
   }
 
   cancelAvailabilityNote(order?: OrderDetail): string {
@@ -105,13 +105,22 @@ export class OrderDetailComponent implements OnInit {
       return '';
     }
     if (this.canReturn(order)) {
-      return 'Available after delivery if you need to send the item back.';
+      const deadline = this.returnDeadline(order);
+      return deadline
+        ? `Return available until ${deadline.toLocaleDateString('en-IN', { dateStyle: 'medium' })}.`
+        : 'Return available for 7 days after delivery.';
     }
     if (order.returnRequest) {
       return `Return ${this.prettify(order.returnRequest.status)}.`;
     }
     if (this.normalize(order.summary.status) !== 'delivered') {
-      return 'Returns open only after delivery is completed.';
+      return 'Returns open after delivery and stay available for 7 days.';
+    }
+    if (this.isReturnWindowExpired(order)) {
+      const deadline = this.returnDeadline(order);
+      return deadline
+        ? `Return window closed on ${deadline.toLocaleDateString('en-IN', { dateStyle: 'medium' })}.`
+        : 'The 7-day return window has closed.';
     }
     return '';
   }
@@ -119,7 +128,7 @@ export class OrderDetailComponent implements OnInit {
   refundHeadline(refund?: RefundSummary | null): string {
     const status = this.normalize(refund?.status);
     if (status === 'processed') {
-      return 'Refund completed';
+      return 'Refund done';
     }
     if (status === 'failed') {
       return 'Refund needs support';
@@ -147,7 +156,9 @@ export class OrderDetailComponent implements OnInit {
     }
     const status = this.normalize(returnRequest.status);
     if (status === 'requested') {
-      return 'We have recorded the return request and it is waiting for review.';
+      return returnRequest.refundStatus === 'pending'
+        ? 'The return request is saved and refund handling has started.'
+        : 'We have recorded the return request and it is waiting for review.';
     }
     if (status === 'approved') {
       return 'The return is approved and moving through the next step.';
@@ -162,6 +173,20 @@ export class OrderDetailComponent implements OnInit {
       return 'The return request could not be approved.';
     }
     return '';
+  }
+
+  returnRefundLabel(returnRequest?: ReturnSummary | null): string {
+    const refundStatus = this.normalize(returnRequest?.refundStatus);
+    if (!returnRequest || refundStatus === 'not_started' || !refundStatus) {
+      return '';
+    }
+    if (refundStatus === 'processed') {
+      return 'Refund done';
+    }
+    if (refundStatus === 'failed') {
+      return 'Refund needs attention';
+    }
+    return 'Refund initiated';
   }
 
   canCompletePayment(order?: OrderDetail): boolean {
@@ -247,5 +272,28 @@ export class OrderDetailComponent implements OnInit {
 
   private normalize(value?: string): string {
     return (value || '').trim().toLowerCase();
+  }
+
+  private deliveredAt(order?: OrderDetail): Date | null {
+    const event = order?.timeline.find((entry) => entry.code === 'shipment_delivered');
+    if (!event?.at) {
+      return null;
+    }
+    return new Date(event.at);
+  }
+
+  private returnDeadline(order?: OrderDetail): Date | null {
+    const deliveredAt = this.deliveredAt(order);
+    if (!deliveredAt) {
+      return null;
+    }
+    const deadline = new Date(deliveredAt);
+    deadline.setDate(deadline.getDate() + 7);
+    return deadline;
+  }
+
+  private isReturnWindowExpired(order?: OrderDetail): boolean {
+    const deadline = this.returnDeadline(order);
+    return !!deadline && Date.now() > deadline.getTime();
   }
 }

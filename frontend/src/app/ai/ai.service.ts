@@ -20,6 +20,7 @@ export interface AiChatResponse {
   products: CatalogProductCard[];
   orders: AiOrderPreview[];
   nextStep: string;
+  targetUrl?: string | null;
 }
 
 export interface AiSearchInterpretation {
@@ -47,6 +48,7 @@ export interface AiImageSearchResponse {
   extractedHint?: string | null;
   confidence: string;
   palette: string[];
+  interpretation?: AiSearchInterpretation;
   products: CatalogProductCard[];
   followUps: string[];
 }
@@ -89,6 +91,15 @@ export class AiService {
     );
   }
 
+  assistSearch(transcript: string): Observable<AiVoiceSearchResponse> {
+    return this.http.post<AiVoiceSearchResponse>(`${this.api}/search-assist`, { transcript }).pipe(
+      map((response) => ({
+        ...response,
+        products: (response.products || []).map((product) => this.normalizeProduct(product))
+      }))
+    );
+  }
+
   imageSearch(file: File, hint?: string): Observable<AiImageSearchResponse> {
     const formData = new FormData();
     formData.append('file', file);
@@ -98,6 +109,7 @@ export class AiService {
     return this.http.post<AiImageSearchResponse>(`${this.api}/image-search`, formData).pipe(
       map((response) => ({
         ...response,
+        interpretation: response.interpretation || undefined,
         products: (response.products || []).map((product) => this.normalizeProduct(product))
       }))
     );
@@ -109,7 +121,8 @@ export class AiService {
       language: response.language || 'en',
       products: (response.products || []).map((product) => this.normalizeProduct(product)),
       quickReplies: response.quickReplies || [],
-      orders: response.orders || []
+      orders: response.orders || [],
+      targetUrl: response.targetUrl || null
     };
   }
 

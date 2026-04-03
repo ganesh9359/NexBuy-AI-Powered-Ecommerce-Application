@@ -237,3 +237,25 @@
     justify-items: start;
   }
 }
+
+.light-theme .cart-list,
+.light-theme .summary-panel,
+.light-theme .empty-state,
+.light-theme .state-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94));
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.07);
+}
+
+.light-theme .item-image,
+.light-theme .qty-controls,
+.light-theme .summary-alert,
+.light-theme .stock-alert {
+  background: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.light-theme .qty-controls button {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}

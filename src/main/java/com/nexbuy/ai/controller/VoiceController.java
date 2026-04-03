@@ -24,4 +24,10 @@ public class VoiceController {
                                                                 @RequestBody AiRequest.VoiceSearchRequest request) {
         return ResponseEntity.ok(voiceService.search(authentication == null ? null : authentication.getName(), request));
     }
+
+    @PostMapping("/search-assist")
+    public ResponseEntity<AiRequest.VoiceSearchResponse> assist(Authentication authentication,
+                                                                @RequestBody AiRequest.VoiceSearchRequest request) {
+        return ResponseEntity.ok(voiceService.search(authentication == null ? null : authentication.getName(), request));
+    }
 }

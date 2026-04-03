@@ -100,6 +100,25 @@ export interface AdminOrderPayment {
   publicKey?: string;
 }
 
+export interface AdminRefundSummary {
+  status: string;
+  amountCents: number;
+  currency: string;
+  providerRefundId?: string;
+  note?: string;
+  requestedAt: string;
+  processedAt?: string;
+}
+
+export interface AdminReturnSummary {
+  status: string;
+  refundStatus: string;
+  reason?: string;
+  requestedAt: string;
+  reviewedAt?: string;
+  updatedAt: string;
+}
+
 export interface AdminOrderDetail {
   summary: {
     orderNumber: string;
@@ -115,6 +134,8 @@ export interface AdminOrderDetail {
   shippingAddress: string;
   billingAddress: string;
   payment?: AdminOrderPayment | null;
+  refund?: AdminRefundSummary | null;
+  returnRequest?: AdminReturnSummary | null;
 }
 
 export interface AdminBrand {
@@ -148,6 +169,7 @@ export interface AdminProduct {
   tags: string[];
   media: AdminProductMedia[];
   priceCents: number;
+  compareAtCents?: number | null;
   stockQty: number;
   createdAt: string;
 }
@@ -165,7 +187,13 @@ export interface AdminProductPayload {
   tags?: string[];
   media?: AdminProductMedia[];
   priceCents: number;
+  compareAtCents?: number | null;
   stockQty: number;
+}
+
+export interface AdminProductStockPayload {
+  stockQty?: number | null;
+  stockDelta?: number | null;
 }
 
 export interface AdminCreateAdminPayload {
@@ -225,6 +253,10 @@ export class AdminApiService {
     return this.http.patch<AdminOrder>(`${this.api}/orders/${orderId}/status`, { status });
   }
 
+  reviewReturn(orderId: number, action: 'approve' | 'reject'): Observable<AdminOrderDetail> {
+    return this.http.patch<AdminOrderDetail>(`${this.api}/orders/${orderId}/return-review`, { action });
+  }
+
   getProducts(): Observable<AdminProduct[]> {
     return this.http.get<AdminProduct[]>(`${this.api}/products`).pipe(
       map((products) => products.map((product) => this.normalizeProduct(product)))
@@ -245,6 +277,12 @@ export class AdminApiService {
 
   updateProduct(productId: number, body: AdminProductPayload): Observable<AdminProduct> {
     return this.http.put<AdminProduct>(`${this.api}/products/${productId}`, body).pipe(
+      map((product) => this.normalizeProduct(product))
+    );
+  }
+
+  updateProductStock(productId: number, body: AdminProductStockPayload): Observable<AdminProduct> {
+    return this.http.patch<AdminProduct>(`${this.api}/products/${productId}/stock`, body).pipe(
       map((product) => this.normalizeProduct(product))
     );
   }

@@ -13,12 +13,15 @@ import com.nexbuy.modules.admin.dto.AdminOrderStatusRequest;
 import com.nexbuy.modules.admin.dto.AdminProductDto;
 import com.nexbuy.modules.admin.dto.AdminProductMediaDto;
 import com.nexbuy.modules.admin.dto.AdminProductRequest;
+import com.nexbuy.modules.admin.dto.AdminProductStockRequest;
+import com.nexbuy.modules.admin.dto.AdminReturnReviewRequest;
 import com.nexbuy.modules.admin.dto.AdminUserDto;
 import com.nexbuy.modules.admin.service.AdminService;
 import com.nexbuy.modules.auth.entity.User;
 import com.nexbuy.modules.auth.repository.UserRepository;
 import com.nexbuy.modules.commerce.CommerceSupport;
 import com.nexbuy.modules.order.dto.OrderDto;
+import com.nexbuy.modules.payment.integration.PaymentGatewayClient;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -59,6 +62,7 @@ public class AdminServiceImpl implements AdminService {
     private final PasswordEncoder passwordEncoder;
     private final CommerceSupport commerceSupport;
     private final EmailService emailService;
+    private final PaymentGatewayClient paymentGatewayClient;
 
     private final RowMapper<AdminUserDto> userRowMapper = (rs, rowNum) -> {
         AdminUserDto dto = new AdminUserDto();
@@ -108,6 +112,7 @@ public class AdminServiceImpl implements AdminService {
         dto.setSku(rs.getString("sku"));
         dto.setVariantName(rs.getString("variant_name"));
         dto.setPriceCents(rs.getInt("price_cents"));
+        dto.setCompareAtCents(rs.getObject("compare_at_cents", Integer.class));
         dto.setStockQty(rs.getInt("stock_qty"));
         Timestamp createdAt = rs.getTimestamp("created_at");
         dto.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
@@ -123,12 +128,18 @@ public class AdminServiceImpl implements AdminService {
         return dto;
     };
 
-    public AdminServiceImpl(JdbcTemplate jdbcTemplate, UserRepository userRepository, PasswordEncoder passwordEncoder, CommerceSupport commerceSupport, EmailService emailService) {
+    public AdminServiceImpl(JdbcTemplate jdbcTemplate,
+                            UserRepository userRepository,
+                            PasswordEncoder passwordEncoder,
+                            CommerceSupport commerceSupport,
+                            EmailService emailService,
+                            PaymentGatewayClient paymentGatewayClient) {
         this.jdbcTemplate = jdbcTemplate;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.commerceSupport = commerceSupport;
         this.emailService = emailService;
+        this.paymentGatewayClient = paymentGatewayClient;
     }
 
     @Override
@@ -270,6 +281,77 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
+    public OrderDto.OrderDetail reviewReturn(Long orderId, AdminReturnReviewRequest request) {
+        AdminOrderDto existing = getOrderById(orderId)
+                .orElseThrow(() -> new CustomException("Order not found", HttpStatus.NOT_FOUND));
+        CommerceSupport.OrderRecord order = commerceSupport.requireOrder(existing.getOrderNumber());
+        CommerceSupport.ReturnRequestRecord returnRequest = commerceSupport.loadReturnRequest(order.id());
+        if (returnRequest == null) {
+            throw new CustomException("No return request was found for this order", HttpStatus.BAD_REQUEST);
+        }
+        if (!"requested".equals(normalizeLower(returnRequest.status()))) {
+            throw new CustomException("This return request has already been reviewed", HttpStatus.BAD_REQUEST);
+        }
+
+        String action = normalizeLower(request == null ? null : request.getAction());
+        if (!List.of("approve", "approved", "reject", "rejected").contains(action)) {
+            throw new CustomException("Return review action must be approve or reject", HttpStatus.BAD_REQUEST);
+        }
+
+        if (action.startsWith("reject")) {
+            jdbcTemplate.update("""
+                    update return_requests
+                    set status = 'rejected',
+                        refund_status = 'not_started',
+                        reviewed_at = current_timestamp,
+                        updated_at = current_timestamp
+                    where order_id = ?
+                    """, order.id());
+            return commerceSupport.loadOrderDetail(order.orderNumber());
+        }
+
+        CommerceSupport.PaymentRecord payment = commerceSupport.loadPayment(order.id());
+        String nextReturnStatus = "approved";
+        String nextRefundStatus = "not_started";
+        String nextOrderPaymentStatus = order.paymentStatus();
+        String nextPaymentStatus = payment == null ? null : payment.status();
+        String refundMailStatus = null;
+
+        if (payment != null && isRefundableProvider(payment.provider()) && hasCapturedPayment(payment)) {
+            RefundOutcome refundOutcome = startRefund(order, payment, "Admin approved the return");
+            nextReturnStatus = refundOutcome.returnStatus();
+            nextRefundStatus = refundOutcome.refundStatus();
+            nextOrderPaymentStatus = refundOutcome.orderPaymentStatus();
+            nextPaymentStatus = refundOutcome.paymentStatus();
+            refundMailStatus = refundOutcome.refundMailStatus();
+        }
+
+        jdbcTemplate.update("""
+                update return_requests
+                set status = ?,
+                    refund_status = ?,
+                    reviewed_at = current_timestamp,
+                    updated_at = current_timestamp
+                where order_id = ?
+                """, nextReturnStatus, nextRefundStatus, order.id());
+
+        if (payment != null && nextPaymentStatus != null) {
+            jdbcTemplate.update("update payments set status = ?, updated_at = current_timestamp where id = ?", nextPaymentStatus, payment.id());
+        }
+        if (nextOrderPaymentStatus != null && !nextOrderPaymentStatus.isBlank()) {
+            jdbcTemplate.update("update orders set payment_status = ?, updated_at = current_timestamp where id = ?", nextOrderPaymentStatus, order.id());
+        }
+
+        restoreStock(order.id());
+        if (refundMailStatus != null) {
+            emailService.sendRefundUpdate(loadOrderEmail(order.id()), order.orderNumber(), order.totalCents(), refundMailStatus);
+        }
+
+        return commerceSupport.loadOrderDetail(order.orderNumber());
+    }
+
+    @Override
     public List<AdminProductDto> getProducts() {
         List<AdminProductDto> products = jdbcTemplate.query(productBaseQuery() + " order by p.created_at desc", productRowMapper);
         hydrateProductRelationships(products);
@@ -319,15 +401,21 @@ public class AdminServiceImpl implements AdminService {
         long productId = Objects.requireNonNull(productKey.getKey()).longValue();
 
         KeyHolder variantKey = new GeneratedKeyHolder();
+        Integer compareAtCents = normalizeCompareAtCents(request.getCompareAtCents(), request.getPriceCents());
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
-                    "insert into product_variants (product_id, sku, name, price_cents, currency, created_at, updated_at) values (?, ?, ?, ?, 'INR', current_timestamp, current_timestamp)",
+                    "insert into product_variants (product_id, sku, name, price_cents, compare_at_cents, currency, created_at, updated_at) values (?, ?, ?, ?, ?, 'INR', current_timestamp, current_timestamp)",
                     Statement.RETURN_GENERATED_KEYS
             );
             ps.setLong(1, productId);
             ps.setString(2, sku);
             ps.setString(3, variantName);
             ps.setInt(4, request.getPriceCents());
+            if (compareAtCents == null) {
+                ps.setNull(5, Types.INTEGER);
+            } else {
+                ps.setInt(5, compareAtCents);
+            }
             return ps;
         }, variantKey);
 
@@ -355,6 +443,7 @@ public class AdminServiceImpl implements AdminService {
         String variantName = defaultIfBlank(request.getVariantName(), request.getTitle());
         List<String> normalizedTags = normalizeTags(request.getTags());
         String coverImage = resolveCoverImage(request.getCoverImage(), request.getMedia());
+        Integer compareAtCents = normalizeCompareAtCents(request.getCompareAtCents(), request.getPriceCents());
         if (coverImage == null) {
             coverImage = existing.getCoverImage();
         }
@@ -399,22 +488,28 @@ public class AdminServiceImpl implements AdminService {
             KeyHolder variantKey = new GeneratedKeyHolder();
             jdbcTemplate.update(connection -> {
                 PreparedStatement ps = connection.prepareStatement(
-                        "insert into product_variants (product_id, sku, name, price_cents, currency, created_at, updated_at) values (?, ?, ?, ?, 'INR', current_timestamp, current_timestamp)",
+                        "insert into product_variants (product_id, sku, name, price_cents, compare_at_cents, currency, created_at, updated_at) values (?, ?, ?, ?, ?, 'INR', current_timestamp, current_timestamp)",
                         Statement.RETURN_GENERATED_KEYS
                 );
                 ps.setLong(1, productId);
                 ps.setString(2, sku);
                 ps.setString(3, variantName);
                 ps.setInt(4, request.getPriceCents());
+                if (compareAtCents == null) {
+                    ps.setNull(5, Types.INTEGER);
+                } else {
+                    ps.setInt(5, compareAtCents);
+                }
                 return ps;
             }, variantKey);
             variantId = Objects.requireNonNull(variantKey.getKey()).longValue();
         } else {
             jdbcTemplate.update(
-                    "update product_variants set sku = ?, name = ?, price_cents = ?, updated_at = current_timestamp where id = ?",
+                    "update product_variants set sku = ?, name = ?, price_cents = ?, compare_at_cents = ?, updated_at = current_timestamp where id = ?",
                     sku,
                     variantName,
                     request.getPriceCents(),
+                    compareAtCents,
                     variantId
             );
         }
@@ -434,6 +529,63 @@ public class AdminServiceImpl implements AdminService {
 
         syncProductTags(productId, normalizedTags);
         syncProductMedia(productId, normalizedMedia);
+
+        return getProduct(productId);
+    }
+
+    @Override
+    @Transactional
+    public AdminProductDto updateProductStock(Long productId, AdminProductStockRequest request) {
+        if (request == null) {
+            throw new CustomException("Stock update details are required", HttpStatus.BAD_REQUEST);
+        }
+
+        Long variantId;
+        try {
+            variantId = jdbcTemplate.queryForObject(
+                    "select id from product_variants where product_id = ? order by id asc limit 1",
+                    Long.class,
+                    productId
+            );
+        } catch (EmptyResultDataAccessException ex) {
+            throw new CustomException("Product variant not found", HttpStatus.NOT_FOUND);
+        }
+
+        Integer currentStock;
+        try {
+            currentStock = jdbcTemplate.queryForObject(
+                    "select stock_qty from inventory where variant_id = ? limit 1",
+                    Integer.class,
+                    variantId
+            );
+        } catch (EmptyResultDataAccessException ex) {
+            currentStock = 0;
+        }
+        int baseStock = currentStock == null ? 0 : currentStock;
+        Integer requestedStock = request.getStockQty();
+        Integer stockDelta = request.getStockDelta();
+
+        if (requestedStock == null && stockDelta == null) {
+            throw new CustomException("Provide stock quantity or stock delta", HttpStatus.BAD_REQUEST);
+        }
+
+        int nextStock = requestedStock != null ? requestedStock : baseStock + stockDelta;
+        if (nextStock < 0) {
+            throw new CustomException("Stock cannot go below zero", HttpStatus.BAD_REQUEST);
+        }
+
+        int updated = jdbcTemplate.update(
+                "update inventory set stock_qty = ?, updated_at = current_timestamp where variant_id = ?",
+                nextStock,
+                variantId
+        );
+        if (updated == 0) {
+            jdbcTemplate.update(
+                    "insert into inventory (variant_id, stock_qty, low_stock_threshold, is_backorder_allowed, updated_at) values (?, ?, 5, false, current_timestamp)",
+                    variantId,
+                    nextStock
+            );
+        }
 
         return getProduct(productId);
     }
@@ -477,6 +629,7 @@ public class AdminServiceImpl implements AdminService {
                        pv.sku,
                        pv.name as variant_name,
                        coalesce(pv.price_cents, 0) as price_cents,
+                       pv.compare_at_cents,
                        coalesce(i.stock_qty, 0) as stock_qty
                 from products p
                 left join categories c on c.id = p.category_id
@@ -706,6 +859,13 @@ public class AdminServiceImpl implements AdminService {
         return new ArrayList<>(normalized);
     }
 
+    private Integer normalizeCompareAtCents(Integer compareAtCents, int priceCents) {
+        if (compareAtCents == null || compareAtCents <= 0 || compareAtCents <= priceCents) {
+            return null;
+        }
+        return compareAtCents;
+    }
+
     private String normalizeTag(String tag) {
         String normalized = emptyToNull(tag);
         if (normalized == null) {
@@ -847,6 +1007,117 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+    private RefundOutcome startRefund(CommerceSupport.OrderRecord order,
+                                      CommerceSupport.PaymentRecord payment,
+                                      String note) {
+        try {
+            PaymentGatewayClient.GatewayRefund gatewayRefund = paymentGatewayClient.refund(
+                    payment.provider(),
+                    payment.providerPaymentId(),
+                    order.totalCents(),
+                    order.currency(),
+                    order.orderNumber(),
+                    note
+            );
+            String refundStatus = normalizeLower(gatewayRefund.status());
+            String persistedStatus = "processed".equals(refundStatus) ? "processed" : "pending";
+            jdbcTemplate.update("""
+                    insert into refunds (order_id, payment_id, amount_cents, currency, status, provider_refund_id, note, requested_at, processed_at, updated_at)
+                    values (?, ?, ?, ?, ?, ?, ?, current_timestamp, ?, current_timestamp)
+                    on duplicate key update
+                        payment_id = values(payment_id),
+                        amount_cents = values(amount_cents),
+                        currency = values(currency),
+                        status = values(status),
+                        provider_refund_id = values(provider_refund_id),
+                        note = values(note),
+                        processed_at = values(processed_at),
+                        updated_at = current_timestamp
+                    """,
+                    order.id(),
+                    payment.id(),
+                    gatewayRefund.amountCents(),
+                    gatewayRefund.currency(),
+                    persistedStatus,
+                    gatewayRefund.providerRefundId(),
+                    gatewayRefund.note(),
+                    "processed".equals(refundStatus) ? Timestamp.valueOf(java.time.LocalDateTime.now()) : null
+            );
+            String paymentStatus = "processed".equals(refundStatus) ? "refunded" : "refund_pending";
+            String returnStatus = "processed".equals(refundStatus) ? "refunded" : "approved";
+            String returnRefundStatus = "processed".equals(refundStatus) ? "processed" : "pending";
+            return new RefundOutcome(paymentStatus, paymentStatus, returnStatus, returnRefundStatus, refundStatus);
+        } catch (CustomException ex) {
+            jdbcTemplate.update("""
+                    insert into refunds (order_id, payment_id, amount_cents, currency, status, provider_refund_id, note, requested_at, processed_at, updated_at)
+                    values (?, ?, ?, ?, 'failed', null, ?, current_timestamp, null, current_timestamp)
+                    on duplicate key update
+                        payment_id = values(payment_id),
+                        amount_cents = values(amount_cents),
+                        currency = values(currency),
+                        status = 'failed',
+                        note = values(note),
+                        processed_at = null,
+                        updated_at = current_timestamp
+                    """,
+                    order.id(),
+                    payment.id(),
+                    order.totalCents(),
+                    order.currency(),
+                    ex.getMessage()
+            );
+            return new RefundOutcome("refund_pending", "refund_pending", "approved", "failed", "failed");
+        }
+    }
+
+    private boolean hasCapturedPayment(CommerceSupport.PaymentRecord payment) {
+        String status = normalizeLower(payment == null ? null : payment.status());
+        return List.of("captured", "authorized").contains(status);
+    }
+
+    private boolean isRefundableProvider(String provider) {
+        String normalized = normalizeLower(provider);
+        return List.of("razorpay", "stripe").contains(normalized);
+    }
+
+    private void restoreStock(long orderId) {
+        jdbcTemplate.query("""
+                select variant_id, qty
+                from order_items
+                where order_id = ?
+                order by id asc
+                """, rs -> {
+            long variantId = rs.getLong("variant_id");
+            int quantity = rs.getInt("qty");
+
+            int updated = jdbcTemplate.update("""
+                    update inventory
+                    set stock_qty = stock_qty + ?, updated_at = current_timestamp
+                    where variant_id = ?
+                    """, quantity, variantId);
+            if (updated == 0) {
+                jdbcTemplate.update("""
+                        insert into inventory (variant_id, stock_qty, low_stock_threshold, is_backorder_allowed, updated_at)
+                        values (?, ?, 5, false, current_timestamp)
+                        """, variantId, quantity);
+            }
+        }, orderId);
+    }
+
+    private String loadOrderEmail(long orderId) {
+        String email = jdbcTemplate.queryForObject("""
+                select u.email
+                from orders o
+                join users u on u.id = o.user_id
+                where o.id = ?
+                limit 1
+                """, String.class, orderId);
+        if (email == null || email.isBlank()) {
+            throw new CustomException("Order email could not be resolved", HttpStatus.NOT_FOUND);
+        }
+        return email;
+    }
+
     private String normalizeOrderStatus(String status) {
         String normalized = defaultIfBlank(status, "pending").trim().toLowerCase(Locale.ROOT);
         if (!ALLOWED_ORDER_STATUSES.contains(normalized)) {
@@ -873,6 +1144,10 @@ public class AdminServiceImpl implements AdminService {
         }
         String value = phone.trim();
         return value.isEmpty() ? null : value;
+    }
+
+    private String normalizeLower(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
     private String normalizeLabel(String value) {
@@ -909,6 +1184,13 @@ public class AdminServiceImpl implements AdminService {
         dto.setCreatedAt(user.getCreatedAt());
         dto.setLastLoginAt(user.getLastLoginAt());
         return dto;
+    }
+
+    private record RefundOutcome(String orderPaymentStatus,
+                                 String paymentStatus,
+                                 String returnStatus,
+                                 String refundStatus,
+                                 String refundMailStatus) {
     }
 }
 

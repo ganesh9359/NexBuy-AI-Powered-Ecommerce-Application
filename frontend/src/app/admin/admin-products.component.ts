@@ -12,6 +12,8 @@ export class AdminProductsComponent implements OnInit {
   loading = true;
   query = '';
   deletingId: number | null = null;
+  stockSavingId: number | null = null;
+  quickStockInputs: Record<number, number | null> = {};
 
   constructor(private adminApi: AdminApiService, private router: Router) {}
 
@@ -69,6 +71,52 @@ export class AdminProductsComponent implements OnInit {
     return product.coverImage || product.media?.[0]?.url || 'assets/logo.svg';
   }
 
+  discountPercent(product: AdminProduct): number {
+    const compareAt = product.compareAtCents ?? 0;
+    if (!compareAt || compareAt <= product.priceCents) {
+      return 0;
+    }
+    return Math.round(((compareAt - product.priceCents) / compareAt) * 100);
+  }
+
+  quickStockValue(productId: number): number | null {
+    return this.quickStockInputs[productId] ?? null;
+  }
+
+  applyQuickStock(product: AdminProduct, delta: number): void {
+    if (this.stockSavingId) {
+      return;
+    }
+    this.stockSavingId = product.id;
+    this.adminApi.updateProductStock(product.id, { stockDelta: delta }).subscribe({
+      next: (updated) => {
+        this.replaceProduct(updated);
+        this.stockSavingId = null;
+      },
+      error: () => {
+        this.stockSavingId = null;
+      }
+    });
+  }
+
+  setQuickStock(product: AdminProduct): void {
+    const nextStock = this.quickStockValue(product.id);
+    if (nextStock === null || nextStock < 0 || this.stockSavingId) {
+      return;
+    }
+    this.stockSavingId = product.id;
+    this.adminApi.updateProductStock(product.id, { stockQty: nextStock }).subscribe({
+      next: (updated) => {
+        this.replaceProduct(updated);
+        this.quickStockInputs[product.id] = null;
+        this.stockSavingId = null;
+      },
+      error: () => {
+        this.stockSavingId = null;
+      }
+    });
+  }
+
   private loadProducts(): void {
     this.loading = true;
     this.adminApi.getProducts().subscribe({
@@ -80,5 +128,9 @@ export class AdminProductsComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  private replaceProduct(updated: AdminProduct): void {
+    this.products = this.products.map((product) => product.id === updated.id ? updated : product);
   }
 }

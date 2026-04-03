@@ -1,0 +1,163 @@
+2026-04-03 22:11:52: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:11:52: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:11:52: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:11:53: Info: Loading startup files...
+2026-04-03 22:11:53: Info: Loading plugins...
+2026-04-03 22:12:02: Info: Pager has been set to 'more.com'.
+2026-04-03 22:12:02: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:12:02: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:12:03: Info: main: tid=693: CONNECTED: localhost:3306
+2026-04-03 22:12:03: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:12:17: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:12:17: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:12:17: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:12:17: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:12:17: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:12:17: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:12:18: Info: Loading startup files...
+2026-04-03 22:12:18: Info: Loading plugins...
+2026-04-03 22:12:18: Info: Loading startup files...
+2026-04-03 22:12:18: Info: Loading plugins...
+2026-04-03 22:12:20: Info: Pager has been set to 'more.com'.
+2026-04-03 22:12:20: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:12:20: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:12:21: Info: main: tid=695: CONNECTED: localhost:3306
+2026-04-03 22:12:21: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:12:21: Info: main: tid=695: MySQL Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿USE nexbuy_db' at line 1, SQL: ﻿USE nexbuy_db
+2026-04-03 22:12:21: Info: Pager has been set to 'more.com'.
+2026-04-03 22:12:21: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:12:21: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:12:21: Info: main: tid=697: CONNECTED: localhost:3306
+2026-04-03 22:12:21: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:12:40: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:12:40: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:12:40: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:12:40: Info: Loading startup files...
+2026-04-03 22:12:40: Info: Loading plugins...
+2026-04-03 22:12:42: Info: Pager has been set to 'more.com'.
+2026-04-03 22:12:42: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:12:42: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:12:42: Info: main: tid=699: CONNECTED: localhost:3306
+2026-04-03 22:12:42: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:12:44: Info: main: tid=699: MySQL Error 1062 (23000): Duplicate entry '171-home' for key 'product_tags.PRIMARY', SQL: INSERT INTO product_tags (product_id, tag)
+SELECT p.id, sp.tag_primary FROM seed_products sp JOIN products p ON p.slug = sp.slug
+2026-04-03 22:13:04: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:13:04: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:13:04: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:13:04: Info: Loading startup files...
+2026-04-03 22:13:04: Info: Loading plugins...
+2026-04-03 22:13:06: Info: Pager has been set to 'more.com'.
+2026-04-03 22:13:06: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:13:06: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:13:06: Info: main: tid=701: CONNECTED: localhost:3306
+2026-04-03 22:13:06: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:13:48: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:13:48: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:13:48: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:13:48: Info: Loading startup files...
+2026-04-03 22:13:48: Info: Loading plugins...
+2026-04-03 22:13:50: Info: Pager has been set to 'more.com'.
+2026-04-03 22:13:50: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:13:50: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:13:50: Info: main: tid=703: CONNECTED: localhost:3306
+2026-04-03 22:13:50: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:14:13: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:14:13: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:14:13: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:14:13: Info: Loading startup files...
+2026-04-03 22:14:13: Info: Loading plugins...
+2026-04-03 22:14:15: Info: Pager has been set to 'more.com'.
+2026-04-03 22:14:15: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:14:15: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:14:15: Info: main: tid=705: CONNECTED: localhost:3306
+2026-04-03 22:14:15: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:14:34: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:14:34: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:14:34: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:14:34: Info: Loading startup files...
+2026-04-03 22:14:34: Info: Loading plugins...
+2026-04-03 22:14:38: Info: Pager has been set to 'more.com'.
+2026-04-03 22:14:38: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:14:38: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:14:38: Info: main: tid=707: CONNECTED: localhost:3306
+2026-04-03 22:14:38: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:21:00: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:21:00: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:21:00: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:21:00: Info: Loading startup files...
+2026-04-03 22:21:00: Info: Loading plugins...
+2026-04-03 22:21:02: Info: Pager has been set to 'more.com'.
+2026-04-03 22:21:02: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:21:02: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:21:02: Info: main: tid=709: CONNECTED: localhost:3306
+2026-04-03 22:21:02: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:21:19: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:21:19: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:21:19: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:21:19: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:21:19: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:21:19: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:21:19: Info: Loading startup files...
+2026-04-03 22:21:19: Info: Loading plugins...
+2026-04-03 22:21:20: Info: Loading startup files...
+2026-04-03 22:21:20: Info: Loading plugins...
+2026-04-03 22:21:22: Info: Pager has been set to 'more.com'.
+2026-04-03 22:21:22: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:21:22: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:21:22: Info: main: tid=711: CONNECTED: localhost:3306
+2026-04-03 22:21:22: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:21:22: Info: Pager has been set to 'more.com'.
+2026-04-03 22:21:22: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:21:22: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:21:22: Info: main: tid=713: CONNECTED: localhost:3306
+2026-04-03 22:21:22: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:24:17: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:24:17: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:24:17: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:24:17: Info: Loading startup files...
+2026-04-03 22:24:17: Info: Loading plugins...
+2026-04-03 22:24:23: Info: Pager has been set to 'more.com'.
+2026-04-03 22:24:23: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:24:23: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:24:23: Info: main: tid=715: CONNECTED: localhost:3306
+2026-04-03 22:24:23: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:25:48: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:25:48: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:25:48: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:25:49: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:25:49: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:25:49: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:25:49: Info: Loading startup files...
+2026-04-03 22:25:49: Info: Loading plugins...
+2026-04-03 22:25:49: Info: Loading startup files...
+2026-04-03 22:25:49: Info: Loading plugins...
+2026-04-03 22:25:52: Info: Pager has been set to 'more.com'.
+2026-04-03 22:25:52: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:25:52: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:25:52: Info: main: tid=717: CONNECTED: localhost:3306
+2026-04-03 22:25:52: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:25:52: Info: Pager has been set to 'more.com'.
+2026-04-03 22:25:52: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:25:52: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:25:52: Info: main: tid=719: CONNECTED: localhost:3306
+2026-04-03 22:25:52: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:26:50: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:26:50: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:26:50: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:26:50: Info: Loading startup files...
+2026-04-03 22:26:50: Info: Loading plugins...
+2026-04-03 22:26:53: Info: Pager has been set to 'more.com'.
+2026-04-03 22:26:53: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:26:53: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:26:53: Info: main: tid=721: CONNECTED: localhost:3306
+2026-04-03 22:26:53: Info: Now tracking 'sql_mode' system variable.
+2026-04-03 22:27:06: Info: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysqlsh.exe   Ver 8.0.44 for Win64 on x86_64 - for MySQL 8.0.44 (MySQL Community Server (GPL)) - build 21198085 - commit_id 65c0ba98aaa41074d81d8a794d076cbb0d9ee423
+2026-04-03 22:27:06: Info: Using credential store helper: C:\Program Files\MySQL\MySQL Shell 8.0\bin\mysql-secret-store-windows-credential.exe
+2026-04-03 22:27:06: Info: Setting Python home to 'C:\Program Files\MySQL\MySQL Shell 8.0\lib\Python3.13'
+2026-04-03 22:27:07: Info: Loading startup files...
+2026-04-03 22:27:07: Info: Loading plugins...
+2026-04-03 22:27:09: Info: Pager has been set to 'more.com'.
+2026-04-03 22:27:09: Warning: Using a password on the command line interface can be insecure.
+2026-04-03 22:27:09: Info: Connecting to MySQL at: root@localhost:3306/nexbuy_db
+2026-04-03 22:27:09: Info: main: tid=723: CONNECTED: localhost:3306
+2026-04-03 22:27:09: Info: Now tracking 'sql_mode' system variable.

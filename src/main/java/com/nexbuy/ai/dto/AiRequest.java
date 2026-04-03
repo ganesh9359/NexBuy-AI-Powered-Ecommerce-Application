@@ -26,7 +26,8 @@ public final class AiRequest {
                                List<String> quickReplies,
                                List<ProductDto.ProductCard> products,
                                List<OrderPreview> orders,
-                               String nextStep) {
+                               String nextStep,
+                               String targetUrl) {
     }
 
     public record SearchInterpretation(String query,
@@ -54,6 +55,7 @@ public final class AiRequest {
                                       String extractedHint,
                                       String confidence,
                                       List<String> palette,
+                                      SearchInterpretation interpretation,
                                       List<ProductDto.ProductCard> products,
                                       List<String> followUps) {
     }

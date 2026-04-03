@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -164,7 +165,7 @@ public class OrderServiceImpl implements OrderService {
                 """, nextOrderPaymentStatus, order.id());
 
         String recipient = loadOrderEmail(order.id());
-        emailService.sendOrderCancelled(recipient, order.orderNumber(), refundExpected);
+        emailService.sendOrderCancelled(recipient, order.orderNumber(), refundExpected, order.totalCents());
         if (refundMailStatus != null) {
             emailService.sendRefundUpdate(recipient, order.orderNumber(), order.totalCents(), refundMailStatus);
         }
@@ -178,6 +179,10 @@ public class OrderServiceImpl implements OrderService {
         CommerceSupport.OrderRecord order = commerceSupport.requireOrderForUser(userId, orderNumber);
         if (!"delivered".equals(normalize(order.status()))) {
             throw new CustomException("Returns are available only after delivery", HttpStatus.BAD_REQUEST);
+        }
+        LocalDateTime deliveredAt = resolveDeliveredAt(order.id(), order.updatedAt());
+        if (LocalDateTime.now().isAfter(deliveredAt.plusDays(7))) {
+            throw new CustomException("Returns are available only within 7 days after delivery", HttpStatus.BAD_REQUEST);
         }
         if (commerceSupport.loadReturnRequest(order.id()) != null) {
             throw new CustomException("A return request already exists for this order", HttpStatus.BAD_REQUEST);
@@ -311,8 +316,32 @@ public class OrderServiceImpl implements OrderService {
         return email;
     }
 
+    private LocalDateTime resolveDeliveredAt(long orderId, LocalDateTime fallback) {
+        LocalDateTime deliveredAt = jdbcTemplate.query("""
+                select delivered_at, updated_at
+                from shipments
+                where order_id = ?
+                order by id desc
+                limit 1
+                """, rs -> {
+            if (!rs.next()) {
+                return null;
+            }
+            if (rs.getTimestamp("delivered_at") != null) {
+                return rs.getTimestamp("delivered_at").toLocalDateTime();
+            }
+            if (rs.getTimestamp("updated_at") != null) {
+                return rs.getTimestamp("updated_at").toLocalDateTime();
+            }
+            return null;
+        }, orderId);
+        return deliveredAt != null ? deliveredAt : fallback;
+    }
+
     private String normalizeProvider(String provider) {
-        String value = provider == null ? "stripe" : provider.trim().toLowerCase(Locale.ROOT);
+        String value = provider == null
+                ? (paymentGatewayClient != null && paymentGatewayClient.isProviderConfigured("razorpay") ? "razorpay" : "cod")
+                : provider.trim().toLowerCase(Locale.ROOT);
         if (!List.of("stripe", "razorpay", "cod").contains(value)) {
             throw new CustomException("Unsupported payment provider", HttpStatus.BAD_REQUEST);
         }

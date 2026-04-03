@@ -8,6 +8,8 @@ import com.nexbuy.modules.admin.dto.AdminOrderDto;
 import com.nexbuy.modules.admin.dto.AdminOrderStatusRequest;
 import com.nexbuy.modules.admin.dto.AdminProductDto;
 import com.nexbuy.modules.admin.dto.AdminProductRequest;
+import com.nexbuy.modules.admin.dto.AdminProductStockRequest;
+import com.nexbuy.modules.admin.dto.AdminReturnReviewRequest;
 import com.nexbuy.modules.admin.dto.AdminUploadResponse;
 import com.nexbuy.modules.admin.dto.AdminUserDto;
 import com.nexbuy.modules.order.dto.OrderDto;
@@ -91,6 +93,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.updateOrderStatus(orderId, request));
     }
 
+    @PatchMapping("/orders/{orderId}/return-review")
+    public ResponseEntity<OrderDto.OrderDetail> reviewReturn(@PathVariable Long orderId,
+                                                             @RequestBody @Valid AdminReturnReviewRequest request) {
+        return ResponseEntity.ok(adminService.reviewReturn(orderId, request));
+    }
+
     @GetMapping("/products")
     public ResponseEntity<List<AdminProductDto>> getProducts() {
         return ResponseEntity.ok(adminService.getProducts());
@@ -110,6 +118,12 @@ public class AdminController {
     public ResponseEntity<AdminProductDto> updateProduct(@PathVariable Long productId,
                                                          @RequestBody @Valid AdminProductRequest request) {
         return ResponseEntity.ok(adminService.updateProduct(productId, request));
+    }
+
+    @PatchMapping("/products/{productId}/stock")
+    public ResponseEntity<AdminProductDto> updateProductStock(@PathVariable Long productId,
+                                                              @RequestBody AdminProductStockRequest request) {
+        return ResponseEntity.ok(adminService.updateProductStock(productId, request));
     }
 
     @DeleteMapping("/products/{productId}")

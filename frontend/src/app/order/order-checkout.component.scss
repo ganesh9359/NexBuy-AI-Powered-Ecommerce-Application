@@ -88,7 +88,7 @@
 .empty-inline p,
 .state-card {
   margin: 0;
-  color: rgba(247, 236, 227, 0.76);
+  color: rgba(212, 225, 238, 0.8);
 }
 
 .hero-text {
@@ -220,7 +220,7 @@
 
 .address-form input::placeholder,
 .panel-block input::placeholder {
-  color: rgba(247, 236, 227, 0.42);
+  color: rgba(188, 201, 217, 0.62);
 }
 
 .checkbox-row {
@@ -558,4 +558,84 @@
   .summary-row {
     align-items: flex-start;
   }
+}
+
+.light-theme .checkout-hero {
+  border-color: rgba(148, 163, 184, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94));
+  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .checkout-hero::after {
+  background: radial-gradient(circle, rgba(223, 109, 43, 0.12), transparent 68%);
+}
+
+.light-theme .hero-copy h1,
+.light-theme .section-head h2,
+.light-theme .summary-head h2,
+.light-theme .summary-copy strong,
+.light-theme .summary-total,
+.light-theme .account-stat strong,
+.light-theme .address-card strong,
+.light-theme .provider-card strong {
+  color: #0f172a;
+}
+
+.light-theme .hero-text,
+.light-theme .hero-side span,
+.light-theme .summary-head p,
+.light-theme .summary-copy span,
+.light-theme .summary-copy small,
+.light-theme .address-card span,
+.light-theme .provider-card p,
+.light-theme .provider-card span,
+.light-theme .billing-inline,
+.light-theme .empty-inline p,
+.light-theme .state-card {
+  color: #475569;
+}
+
+.light-theme .hero-points span,
+.light-theme .mini-badge,
+.light-theme .hero-side strong,
+.light-theme .hero-side span,
+.light-theme .summary-note,
+.light-theme .account-stat,
+.light-theme .address-form,
+.light-theme .address-card,
+.light-theme .provider-card,
+.light-theme .billing-toggle,
+.light-theme .billing-inline,
+.light-theme .summary-image {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.light-theme .panel-block,
+.light-theme .summary-panel,
+.light-theme .state-card,
+.light-theme .empty-inline {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94));
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.07);
+}
+
+.light-theme .address-form input,
+.light-theme .panel-block input {
+  background: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.18);
+  color: #0f172a;
+}
+
+.light-theme .address-form input::placeholder,
+.light-theme .panel-block input::placeholder {
+  color: #64748b;
+}
+
+.light-theme .meta-label,
+.light-theme .checkbox-row,
+.light-theme .muted-row {
+  color: #475569;
 }

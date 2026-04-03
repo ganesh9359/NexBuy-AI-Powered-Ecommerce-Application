@@ -16,6 +16,7 @@ public class AdminProductDto {
     private String sku;
     private String variantName;
     private int priceCents;
+    private Integer compareAtCents;
     private int stockQty;
     private LocalDateTime createdAt;
     private List<String> tags = new ArrayList<>();
@@ -107,6 +108,14 @@ public class AdminProductDto {
 
     public void setPriceCents(int priceCents) {
         this.priceCents = priceCents;
+    }
+
+    public Integer getCompareAtCents() {
+        return compareAtCents;
+    }
+
+    public void setCompareAtCents(Integer compareAtCents) {
+        this.compareAtCents = compareAtCents;
     }
 
     public int getStockQty() {

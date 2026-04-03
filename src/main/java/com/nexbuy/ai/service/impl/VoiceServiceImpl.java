@@ -25,35 +25,24 @@ public class VoiceServiceImpl implements VoiceService {
             throw new CustomException("Say or type what you want to shop for", HttpStatus.BAD_REQUEST);
         }
 
-        AiCommerceSupport.ShoppingIntent intent = aiCommerceSupport.interpretShoppingIntent(transcript);
-        List<ProductDto.ProductCard> products = aiCommerceSupport.searchProducts(intent, 8);
-        if (products.isEmpty()) {
-            products = aiCommerceSupport.getTrendingProducts(6);
-        }
+        AiCommerceSupport.SearchPlan plan = aiCommerceSupport.buildSearchPlan(transcript, 8);
+        AiCommerceSupport.ShoppingIntent intent = plan.effectiveIntent();
+        List<ProductDto.ProductCard> products = plan.products();
 
         Long userId = aiCommerceSupport.findUserId(email);
         aiCommerceSupport.logSearch(userId, transcript, "voice", products.size());
-        aiCommerceSupport.logAiRequest(userId, "voice", transcript, aiCommerceSupport.summarizeShoppingIntent(intent, products.size()));
+        aiCommerceSupport.logAiRequest(userId, "voice", transcript, plan.summary());
 
         return new AiRequest.VoiceSearchResponse(
                 transcript,
-                aiCommerceSupport.summarizeShoppingIntent(intent, products.size()),
-                products.isEmpty() ? "low" : "guided",
-                new AiRequest.SearchInterpretation(
-                        intent.query(),
-                        intent.category(),
-                        intent.brand(),
-                        intent.tag(),
-                        intent.minPrice(),
-                        intent.maxPrice(),
-                        intent.inStock(),
-                        intent.sort()
-                ),
+                plan.summary(),
+                plan.relaxed() ? "guided" : "high",
+                aiCommerceSupport.toInterpretation(intent),
                 products,
                 List.of(
-                        "Try adding a brand name or budget next.",
-                        "Say 'only in stock' to filter harder.",
-                        "Ask for newer or cheaper options to refine the list."
+                        "Add a brand or budget if you want tighter results.",
+                        "Say or type 'only in stock' to filter harder.",
+                        "Ask for cheaper, newer, or premium options to refine the list."
                 )
         );
     }
