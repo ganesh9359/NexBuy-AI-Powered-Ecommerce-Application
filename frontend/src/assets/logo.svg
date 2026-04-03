@@ -1,0 +1,28 @@
+<svg width="420" height="420" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NexBuy logo">
+  <defs>
+    <linearGradient id="bagBody" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop stop-color="#1ec8ff" offset="0"/>
+      <stop stop-color="#0e7bff" offset="0.45"/>
+      <stop stop-color="#7a1cff" offset="1"/>
+    </linearGradient>
+    <linearGradient id="handleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop stop-color="#b97bff" offset="0"/>
+      <stop stop-color="#6d28ff" offset="1"/>
+    </linearGradient>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop stop-color="#ffe066" offset="0"/>
+      <stop stop-color="#ff9800" offset="1"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#001a4d" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M120 130 C125 90 160 65 210 65 C260 65 295 90 300 130 L320 135 C335 138 345 149 348 165 L365 270 C370 300 350 325 320 330 L130 360 C100 365 75 345 70 315 L53 210 C48 180 68 152 98 147 L120 143 Z" fill="url(#bagBody)"/>
+    <path d="M170 118 C175 92 190 80 212 80 C234 80 248 93 253 119 L270 122 C263 80 235 53 212 53 C189 53 159 78 152 121 Z" fill="url(#handleGrad)"/>
+    <path d="M210 120 L140 245 L198 245 L175 320 L278 205 L220 205 L248 120 Z" fill="url(#boltGrad)"/>
+    <circle cx="150" cy="138" r="7" fill="#ffffff" opacity="0.85"/>
+    <circle cx="255" cy="150" r="6" fill="#ffffff" opacity="0.85"/>
+  </g>
+  <text x="50%" y="385" text-anchor="middle" font-family="Poppins, 'Segoe UI', sans-serif" font-size="54" font-weight="700" fill="#14b8ff">Nex<tspan fill="#7c3aed">Buy</tspan></text>
+</svg>

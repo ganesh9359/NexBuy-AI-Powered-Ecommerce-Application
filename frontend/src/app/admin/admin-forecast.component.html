@@ -1,0 +1,170 @@
+<section class="forecast-shell" *ngIf="!loading && forecast as data; else forecastStateTpl">
+  <header class="forecast-header">
+    <div>
+      <p class="eyebrow">Forecasting</p>
+      <h2>7-day demand and revenue forecast</h2>
+      <p class="lede">A standard planning view for the next week, built from recent order flow, category demand, and current stock pressure.</p>
+    </div>
+    <div class="header-meta">
+      <div class="window-pill">{{ forecastWindow }}</div>
+      <button type="button" class="btn-ghost" (click)="retry()">Refresh forecast</button>
+    </div>
+  </header>
+
+  <section class="metric-strip">
+    <article class="metric-tile focus">
+      <span>Projected revenue</span>
+      <strong>{{ formatPrice(data.overview.projectedRevenueCents) }}</strong>
+      <small>{{ formatPrice(projectedDailyRevenue) }} per day projected</small>
+    </article>
+    <article class="metric-tile">
+      <span>Projected orders</span>
+      <strong>{{ data.overview.projectedOrders }}</strong>
+      <small>{{ projectedDailyOrders }} orders per day projected</small>
+    </article>
+    <article class="metric-tile">
+      <span>Week-over-week change</span>
+      <strong>{{ formatTrend(data.overview.revenueGrowthRate) }}</strong>
+      <small>{{ data.overview.trailingOrders }} fulfilled in the trailing 7 days</small>
+    </article>
+    <article class="metric-tile warning">
+      <span>Planning risk</span>
+      <strong>{{ data.overview.lowStockRiskCount + data.overview.pendingOrders }}</strong>
+      <small>{{ data.overview.lowStockRiskCount }} low-stock risks · {{ data.overview.pendingOrders }} pending orders</small>
+    </article>
+  </section>
+
+  <section class="projection-grid">
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Revenue projection</p>
+          <h3>Actual last 7 days vs next 7 days</h3>
+        </div>
+        <span class="panel-tag">{{ confidenceLabel }}</span>
+      </div>
+      <div class="projection-list">
+        <div class="projection-row" *ngFor="let point of revenueProjection">
+          <span>{{ point.label }}</span>
+          <div class="bar-track">
+            <div class="bar-fill" [class.forecast]="point.phase === 'forecast'" [style.width]="width(point.value, revenueMax)"></div>
+          </div>
+          <strong>{{ formatPrice(point.value) }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Order projection</p>
+          <h3>Throughput expected over the next week</h3>
+        </div>
+        <span class="panel-tag subtle">Operations</span>
+      </div>
+      <div class="projection-list">
+        <div class="projection-row" *ngFor="let point of orderProjection">
+          <span>{{ point.label }}</span>
+          <div class="bar-track">
+            <div class="bar-fill orders" [class.forecast]="point.phase === 'forecast'" [style.width]="width(point.value, orderMax)"></div>
+          </div>
+          <strong>{{ point.value }}</strong>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="insight-grid">
+    <article class="panel insight-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Forecast status</p>
+          <h3>{{ confidenceLabel }}</h3>
+        </div>
+      </div>
+      <p class="insight-copy">{{ confidenceNote }}</p>
+      <div class="status-stack">
+        <div class="status-row">
+          <span>Top demand lane</span>
+          <strong>{{ topDemandLabel }}</strong>
+        </div>
+        <div class="status-row">
+          <span>Pending queue</span>
+          <strong>{{ data.overview.pendingOrders }} orders need movement</strong>
+        </div>
+        <div class="status-row">
+          <span>Trailing revenue</span>
+          <strong>{{ formatPrice(data.overview.trailingRevenueCents) }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel demand-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Demand forecast by category</p>
+          <h3>Where next-week volume is likely to land</h3>
+        </div>
+      </div>
+      <div class="demand-list">
+        <a class="demand-row" *ngFor="let item of data.categoryDemand" [routerLink]="['/product/category', item.slug]">
+          <div>
+            <strong>{{ item.category }}</strong>
+            <span>{{ item.unitsSold }} units sold in the last 30 days</span>
+          </div>
+          <div class="demand-meta">
+            <em>{{ item.projectedUnits }} projected</em>
+            <small>{{ formatTrend(item.trendRate) }}</small>
+          </div>
+        </a>
+      </div>
+    </article>
+  </section>
+
+  <section class="detail-grid">
+    <article class="panel risk-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Stock coverage</p>
+          <h3>Inventory risks against projected demand</h3>
+        </div>
+      </div>
+      <div class="risk-list">
+        <a class="risk-row" *ngFor="let risk of data.inventoryRisks" [routerLink]="['/product', risk.slug]">
+          <div>
+            <strong>{{ risk.title }}</strong>
+            <span>{{ risk.stockQty }} left · threshold {{ risk.lowStockThreshold }}</span>
+          </div>
+          <div class="risk-meta">
+            <em>{{ coverageDays(risk) }} days</em>
+            <small>{{ risk.guidance }}</small>
+          </div>
+        </a>
+      </div>
+    </article>
+
+    <article class="panel action-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Planning actions</p>
+          <h3>What to act on from this forecast</h3>
+        </div>
+      </div>
+      <div class="action-list">
+        <div class="action-row" *ngFor="let action of data.actions">
+          <span class="action-dot"></span>
+          <p>{{ action }}</p>
+        </div>
+      </div>
+    </article>
+  </section>
+</section>
+
+<ng-template #forecastStateTpl>
+  <section class="state-panel">
+    <p class="eyebrow">Forecasting</p>
+    <h3>{{ loading ? 'Building the forecast workspace...' : 'Could not load forecasting data' }}</h3>
+    <p>{{ loading ? 'Reading recent order flow, category demand, and stock coverage for the next-week projection.' : error }}</p>
+    <button type="button" class="pill" *ngIf="!loading" (click)="retry()">Try again</button>
+  </section>
+</ng-template>

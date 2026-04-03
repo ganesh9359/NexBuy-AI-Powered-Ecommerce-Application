@@ -1,0 +1,41 @@
+<section class="products-panel">
+  <div class="panel-toolbar">
+    <div>
+      <p class="eyebrow">Catalog control</p>
+      <h4>{{ filteredProducts.length }} products</h4>
+    </div>
+    <div class="toolbar-actions">
+      <input [(ngModel)]="query" placeholder="Search products, brand, tags, SKU" />
+      <a class="add-btn" routerLink="/admin/products/new">Add product</a>
+    </div>
+  </div>
+
+  <div class="product-grid" *ngIf="!loading; else loadingTpl">
+    <article class="product-card" *ngFor="let product of filteredProducts">
+      <div class="media">
+        <img [src]="previewImage(product)" [alt]="product.title" />
+      </div>
+      <div class="card-body">
+        <span class="category">{{ product.categoryName || 'General' }}</span>
+        <span class="brand" *ngIf="product.brandName">{{ product.brandName }}</span>
+        <h5>{{ product.title }}</h5>
+        <p class="price">{{ formatPrice(product.priceCents) }}</p>
+        <p class="meta">Stock: {{ product.stockQty }} | {{ product.status }}</p>
+        <p class="meta" *ngIf="product.media?.length">Gallery: {{ product.media.length }} image{{ product.media.length > 1 ? 's' : '' }}</p>
+        <div class="tag-row" *ngIf="product.tags?.length">
+          <span *ngFor="let tag of product.tags | slice:0:3">{{ tag }}</span>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="edit-btn" (click)="editProduct(product.id)">Edit</button>
+          <button type="button" class="delete-btn" (click)="deleteProduct(product)" [disabled]="deletingId === product.id">
+            {{ deletingId === product.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<ng-template #loadingTpl>
+  <section class="panel empty-state">Loading products...</section>
+</ng-template>

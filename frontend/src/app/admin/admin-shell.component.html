@@ -1,0 +1,71 @@
+<section class="admin-shell">
+  <button
+    type="button"
+    class="shell-backdrop"
+    [class.visible]="sidebarOpen"
+    (click)="closeSidebar()"
+    aria-label="Close admin navigation"
+  ></button>
+
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="brand-block">
+      <img src="assets/logo.svg" alt="NexBuy" />
+      <div>
+        <p class="eyebrow">NexBuy Control</p>
+        <h2>Admin</h2>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/admin/dashboard' }"
+        (click)="closeSidebar()"
+      >
+        <span class="material-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="admin-chip">
+        <span class="material-icon">verified_user</span>
+        <div>
+          <strong>{{ adminEmail }}</strong>
+          <small>Signed in as admin</small>
+        </div>
+      </div>
+      <button class="logout-btn" type="button" (click)="logout()">
+        <span class="material-icon">logout</span>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="workspace-topbar">
+      <div class="title-cluster">
+        <button type="button" class="menu-btn" (click)="toggleSidebar()" aria-label="Toggle admin navigation">
+          <span class="material-icon">{{ sidebarOpen ? 'close' : 'menu' }}</span>
+        </button>
+        <div>
+          <p class="eyebrow">Admin workspace</p>
+          <h1>{{ pageTitle }}</h1>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <a class="quick-action" routerLink="/admin/products/new">
+          <span class="material-icon">add</span>
+          <span>Quick add product</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="workspace-body">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</section>

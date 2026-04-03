@@ -1,0 +1,143 @@
+﻿<section class="container home-shell" *ngIf="!loading && home as catalog; else homeStateTpl">
+  <section class="promo-hero">
+    <div class="promo-copy">
+      <p class="eyebrow">NexBuy promotions</p>
+      <h1>Best deals from the live catalog, ready to browse now.</h1>
+      <p class="lede">Find the products worth opening first with live pricing, real stock, and quicker paths into the storefront.</p>
+      <div class="cta-row">
+        <a class="pill" routerLink="/product/catalog" [queryParams]="{ sort: 'price_asc', inStock: true }">Shop best deals</a>
+        <a class="btn-ghost" routerLink="/product/catalog">Browse all products</a>
+      </div>
+      <div class="tag-row" *ngIf="catalog.trendingTags.length">
+        <a
+          class="tag-chip"
+          *ngFor="let tag of catalog.trendingTags | slice:0:4"
+          [routerLink]="['/product/search']"
+          [queryParams]="{ q: tag.tag }"
+        >
+          {{ tag.tag }}
+        </a>
+      </div>
+    </div>
+
+    <div class="promo-side">
+      <a class="feature-card" *ngIf="catalog.spotlightProduct as product" [routerLink]="['/product', product.slug]">
+        <div class="feature-image">
+          <img [src]="primaryImage(product)" [alt]="product.title" />
+        </div>
+        <div class="feature-copy">
+          <p class="eyebrow">Featured deal</p>
+          <strong>{{ product.title }}</strong>
+          <span>{{ product.categoryName }}<span *ngIf="product.brandName"> / {{ product.brandName }}</span></span>
+          <div class="feature-meta">
+            <em>{{ formatPrice(product.priceCents) }}</em>
+            <small class="save-label" *ngIf="discountPercent(product) > 0">Save {{ discountPercent(product) }}%</small>
+            <small *ngIf="discountPercent(product) === 0">{{ product.stock.label }}</small>
+          </div>
+        </div>
+      </a>
+
+      <div class="deal-list">
+        <a class="deal-row" *ngFor="let deal of catalog.valuePicks | slice:0:2; trackBy: trackBySlug" [routerLink]="['/product', deal.slug]">
+          <div class="deal-image">
+            <img [src]="primaryImage(deal)" [alt]="deal.title" />
+          </div>
+          <div class="deal-copy">
+            <span>{{ deal.title }}</span>
+            <small>{{ deal.categoryName }}</small>
+          </div>
+          <div class="deal-price">
+            <strong>{{ formatPrice(deal.priceCents) }}</strong>
+            <small *ngIf="discountPercent(deal) > 0">{{ discountPercent(deal) }}% off</small>
+            <small *ngIf="discountPercent(deal) === 0">Best value</small>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section categories-section">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Shop by category</p>
+        <h2>Start with the aisle you already know.</h2>
+      </div>
+      <a class="btn-ghost" routerLink="/product/catalog">View all products</a>
+    </div>
+
+    <div class="category-grid">
+      <a class="category-card" *ngFor="let category of catalog.categories" [routerLink]="['/product/category', category.slug]">
+        <div class="category-image">
+          <img [src]="category.imageUrl || 'assets/logo.svg'" [alt]="category.name" />
+        </div>
+        <div class="category-copy">
+          <strong>{{ category.name }}</strong>
+          <span>{{ category.productCount }} products</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section picks-section">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Featured picks</p>
+        <h2>Fresh products without oversized banners.</h2>
+      </div>
+      <a class="btn-ghost" routerLink="/product/catalog" [queryParams]="{ sort: 'newest' }">Newest first</a>
+    </div>
+
+    <div class="picks-grid">
+      <a class="pick-card" *ngFor="let product of catalog.featuredProducts | slice:0:6; trackBy: trackBySlug" [routerLink]="['/product', product.slug]">
+        <div class="pick-image">
+          <img [src]="primaryImage(product)" [alt]="product.title" />
+        </div>
+        <div class="pick-copy">
+          <p class="eyebrow">{{ product.categoryName }}</p>
+          <strong>{{ product.title }}</strong>
+          <div class="pick-meta">
+            <em>{{ formatPrice(product.priceCents) }}</em>
+            <small>{{ product.stock.label }}</small>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section value-section">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">More value</p>
+        <h2>Quick lower-priced options that still look worth opening.</h2>
+      </div>
+      <a class="btn-ghost" routerLink="/product/catalog" [queryParams]="{ sort: 'price_asc', inStock: true }">See more deals</a>
+    </div>
+
+    <div class="value-grid">
+      <a class="value-tile" *ngFor="let product of catalog.valuePicks | slice:0:8; trackBy: trackBySlug" [routerLink]="['/product', product.slug]">
+        <div class="value-image">
+          <img [src]="primaryImage(product)" [alt]="product.title" />
+        </div>
+        <div class="value-copy">
+          <span>{{ product.categoryName }}</span>
+          <strong>{{ product.title }}</strong>
+          <div class="value-meta">
+            <em>{{ formatPrice(product.priceCents) }}</em>
+            <small *ngIf="discountPercent(product) > 0">Save {{ discountPercent(product) }}%</small>
+            <small *ngIf="discountPercent(product) === 0">{{ product.stock.label }}</small>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+</section>
+
+<ng-template #homeStateTpl>
+  <section class="container state-shell">
+    <div class="state-card" *ngIf="loading">Loading the live catalog feed...</div>
+    <div class="state-card error" *ngIf="!loading && error">
+      <p>{{ error }}</p>
+      <button class="pill" type="button" (click)="retry()">Try again</button>
+    </div>
+  </section>
+</ng-template>

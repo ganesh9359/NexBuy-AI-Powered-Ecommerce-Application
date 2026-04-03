@@ -1,0 +1,144 @@
+<section class="container detail-shell">
+  <div class="state-card error" *ngIf="error">{{ error }}</div>
+  <div class="state-card success-card" *ngIf="notice">{{ notice }}</div>
+  <div class="state-card" *ngIf="loading">Loading order details...</div>
+
+  <ng-container *ngIf="!loading && order as currentOrder">
+    <header class="detail-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Order detail</p>
+        <h1>{{ currentOrder.summary.orderNumber }}</h1>
+        <p>
+          Placed on {{ formatDate(currentOrder.summary.placedAt) }} with {{ currentOrder.summary.itemCount }} item{{ currentOrder.summary.itemCount === 1 ? '' : 's' }} in the basket.
+        </p>
+        <div class="hero-chips">
+          <span class="status-chip" [ngClass]="'tone-' + toneFor(currentOrder.summary.status)">{{ prettify(currentOrder.summary.status) }}</span>
+          <span class="status-chip subtle" [ngClass]="'tone-' + toneFor(currentOrder.summary.paymentStatus)">{{ prettify(currentOrder.summary.paymentStatus) }}</span>
+          <strong>{{ formatPrice(currentOrder.summary.totalCents) }}</strong>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn-ghost" routerLink="/order">Back to orders</a>
+        <a class="pill" *ngIf="canCompletePayment(currentOrder)" [routerLink]="['/payment', currentOrder.summary.orderNumber]">Complete payment</a>
+        <button class="btn-ghost" *ngIf="canReturn(currentOrder)" type="button" (click)="requestReturn()" [disabled]="returning">
+          {{ returning ? 'Requesting...' : 'Request return' }}
+        </button>
+        <button class="btn-ghost danger-action" *ngIf="canCancel(currentOrder)" type="button" (click)="cancelOrder()" [disabled]="cancelling">
+          {{ cancelling ? 'Cancelling...' : 'Cancel order' }}
+        </button>
+        <small class="action-note" *ngIf="cancelAvailabilityNote(currentOrder)">{{ cancelAvailabilityNote(currentOrder) }}</small>
+        <small class="action-note" *ngIf="returnAvailabilityNote(currentOrder)">{{ returnAvailabilityNote(currentOrder) }}</small>
+      </div>
+    </header>
+
+    <div class="detail-layout">
+      <div class="detail-main">
+        <section class="items-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Items</p>
+              <h2>Everything included in this order.</h2>
+            </div>
+          </div>
+
+          <article class="item-row" *ngFor="let item of currentOrder.items">
+            <a class="item-image" [routerLink]="item.productSlug ? ['/product', item.productSlug] : ['/order']">
+              <img [src]="item.coverImage || 'assets/logo.svg'" [alt]="item.title" />
+            </a>
+
+            <div class="item-copy">
+              <strong>{{ item.title }}</strong>
+              <span>SKU {{ item.sku }}</span>
+              <small>{{ item.quantity }} x {{ formatPrice(item.unitPriceCents) }}</small>
+            </div>
+
+            <div class="item-total">
+              <span>Line total</span>
+              <strong>{{ formatPrice(item.lineTotalCents) }}</strong>
+            </div>
+          </article>
+        </section>
+
+        <section class="timeline-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Timeline</p>
+              <h2>The order journey so far.</h2>
+            </div>
+          </div>
+
+          <div class="timeline-list">
+            <article class="timeline-row" *ngFor="let event of currentOrder.timeline; let last = last">
+              <div class="timeline-rail" [class.is-last]="last">
+                <span class="timeline-dot"></span>
+              </div>
+              <div class="timeline-copy">
+                <div class="timeline-top">
+                  <strong>{{ event.label }}</strong>
+                  <span>{{ formatDate(event.at) }}</span>
+                </div>
+                <p>{{ event.detail }}</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="meta-panel">
+        <section class="meta-card highlight-card">
+          <p class="eyebrow">Order summary</p>
+          <div class="metric-row">
+            <span>Total amount</span>
+            <strong>{{ formatPrice(currentOrder.summary.totalCents) }}</strong>
+          </div>
+          <div class="metric-row">
+            <span>Items</span>
+            <strong>{{ currentOrder.summary.itemCount }}</strong>
+          </div>
+          <div class="metric-row">
+            <span>Status</span>
+            <strong>{{ prettify(currentOrder.summary.status) }}</strong>
+          </div>
+        </section>
+
+        <section class="meta-card" *ngIf="currentOrder.refund as refund">
+          <p class="eyebrow">Refund</p>
+          <strong>{{ refundHeadline(refund) }}</strong>
+          <span class="payment-chip" [ngClass]="'tone-' + toneFor(refund.status)">{{ prettify(refund.status) }}</span>
+          <small>{{ formatPrice(refund.amountCents) }}</small>
+          <small>{{ refundNote(refund) }}</small>
+          <small *ngIf="refund.requestedAt">Requested {{ formatDate(refund.requestedAt) }}</small>
+          <small *ngIf="refund.processedAt">Completed {{ formatDate(refund.processedAt) }}</small>
+        </section>
+
+        <section class="meta-card" *ngIf="currentOrder.returnRequest as returnRequest">
+          <p class="eyebrow">Return</p>
+          <strong>{{ prettify(returnRequest.status) }}</strong>
+          <span class="payment-chip" [ngClass]="'tone-' + toneFor(returnRequest.status)">{{ prettify(returnRequest.status) }}</span>
+          <small>{{ returnNote(returnRequest) }}</small>
+          <small *ngIf="returnRequest.reason">Reason: {{ returnRequest.reason }}</small>
+          <small>Requested {{ formatDate(returnRequest.requestedAt) }}</small>
+        </section>
+
+        <section class="meta-card">
+          <p class="eyebrow">Shipping address</p>
+          <p>{{ currentOrder.shippingAddress }}</p>
+        </section>
+
+        <section class="meta-card">
+          <p class="eyebrow">Billing address</p>
+          <p>{{ currentOrder.billingAddress }}</p>
+        </section>
+
+        <section class="meta-card" *ngIf="currentOrder.payment">
+          <p class="eyebrow">Payment</p>
+          <strong>{{ currentOrder.payment.checkoutLabel }}</strong>
+          <span class="payment-chip" [ngClass]="'tone-' + toneFor(currentOrder.payment.status)">{{ prettify(currentOrder.payment.status) }}</span>
+          <small *ngIf="currentOrder.payment.providerOrderId">Provider order: {{ currentOrder.payment.providerOrderId }}</small>
+          <small *ngIf="currentOrder.payment.providerPaymentId">Provider payment: {{ currentOrder.payment.providerPaymentId }}</small>
+        </section>
+      </aside>
+    </div>
+  </ng-container>
+</section>

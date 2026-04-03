@@ -1,0 +1,253 @@
+.ai-shell,
+.overview-strip,
+.curation-grid,
+.recommendation-grid,
+.state-actions {
+  display: grid;
+  gap: 1rem;
+}
+
+.ai-shell {
+  padding: clamp(1.1rem, 2.4vw, 2rem);
+}
+
+.intro,
+.overview-tile,
+.story-panel,
+.workflow-panel,
+.product-tile,
+.state-shell {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(31, 22, 17, 0.96), rgba(22, 16, 13, 0.94)),
+    radial-gradient(circle at top right, rgba(249, 115, 22, 0.14), transparent 52%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: end;
+  padding: clamp(1.35rem, 3vw, 2rem);
+}
+
+.intro-copy {
+  max-width: 760px;
+}
+
+.intro h1,
+.story-panel h2,
+.state-shell h2 {
+  margin: 0;
+}
+
+.lede {
+  margin: 0.85rem 0 0;
+  max-width: 62ch;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: flex-end;
+}
+
+.overview-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.overview-tile {
+  padding: 1.2rem 1.25rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.overview-tile span,
+.workflow-panel .eyebrow,
+.product-meta,
+.state-shell p,
+.signal-row p {
+  color: var(--muted);
+}
+
+.overview-tile strong {
+  font-size: clamp(1.35rem, 2vw, 1.95rem);
+}
+
+.overview-tile.spotlight {
+  background:
+    linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(31, 22, 17, 0.95)),
+    linear-gradient(180deg, rgba(31, 22, 17, 0.96), rgba(22, 16, 13, 0.94));
+}
+
+.curation-grid {
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+}
+
+.story-panel,
+.workflow-panel,
+.state-shell {
+  padding: 1.25rem;
+}
+
+.panel-head {
+  margin-bottom: 1.1rem;
+}
+
+.signal-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.signal-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.signal-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 0.45rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fb923c, #facc15);
+  box-shadow: 0 0 0 6px rgba(251, 146, 60, 0.12);
+}
+
+.workflow-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.workflow-step {
+  padding: 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.workflow-step strong,
+.product-copy strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.workflow-step p,
+.product-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.recommendation-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.product-tile {
+  display: grid;
+  gap: 0.95rem;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.product-media {
+  aspect-ratio: 4 / 4.3;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+}
+
+.product-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-copy,
+.product-foot {
+  padding-inline: 1.1rem;
+}
+
+.product-copy {
+  padding-bottom: 0.2rem;
+}
+
+.product-meta {
+  margin: 0 0 0.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.74rem;
+}
+
+.product-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 1.1rem;
+}
+
+.product-foot em {
+  font-style: normal;
+  font-size: 1.18rem;
+  font-weight: 700;
+}
+
+.product-foot span {
+  padding: 0.4rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #bbf7d0;
+  font-size: 0.86rem;
+}
+
+.product-foot span.out {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+}
+
+.state-shell {
+  margin: clamp(1.1rem, 2.4vw, 2rem);
+  text-align: center;
+}
+
+.state-actions {
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+@media (max-width: 1080px) {
+  .overview-strip,
+  .curation-grid,
+  .recommendation-grid,
+  .intro {
+    grid-template-columns: 1fr;
+  }
+
+  .intro-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .ai-shell {
+    padding: 0.9rem;
+  }
+
+  .intro,
+  .overview-tile,
+  .story-panel,
+  .workflow-panel,
+  .product-tile,
+  .state-shell {
+    border-radius: 22px;
+  }
+}

@@ -1,0 +1,36 @@
+﻿<section class="login-hero">
+  <div class="glow"></div>
+  <div class="card">
+    <div class="brand-row">
+      <img src="assets/logo.svg" alt="NexBuy" />
+      <div class="title">Welcome back</div>
+      <p class="muted">Sign in to track orders, save your cart, and get AI picks.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <label>Email</label>
+      <input type="email" formControlName="email" placeholder="you@example.com" />
+      <div class="error" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">Valid email required</div>
+
+      <label>Password</label>
+      <input type="password" formControlName="password" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;" />
+      <div class="error" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">Min 6 characters</div>
+      <div class="muted small"><a routerLink="/auth/forgot">Forgot password?</a></div>
+
+      <button class="pill" type="submit" [disabled]="loading">{{ loading ? 'Signing in...' : 'Sign in' }}</button>
+      <div class="error" *ngIf="error">{{ error }}</div>
+    </form>
+
+    <div class="extras">
+      <div>
+        <div class="eyebrow">Why NexBuy</div>
+        <ul>
+          <li>Fast checkout & order tracking</li>
+          <li>Smart recommendations by NexBuy AI</li>
+          <li>Save carts across devices</li>
+        </ul>
+      </div>
+      <div class="switch">No account? <a routerLink="/auth/register">Create one</a></div>
+    </div>
+  </div>
+</section>

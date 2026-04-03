@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  --accent: #df6d2b;
+  --accent-strong: #b64a12;
+  --accent-soft: rgba(223, 109, 43, 0.14);
+  --bg: #16120f;
+  --bg-soft: #1e1814;
+  --surface: rgba(255, 246, 236, 0.05);
+  --surface-strong: rgba(37, 29, 24, 0.92);
+  --text: #f6ede4;
+  --muted: #b7a898;
+  --line: rgba(255, 241, 224, 0.12);
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --container: 1240px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(223, 109, 43, 0.16), transparent 24%),
+    radial-gradient(circle at 84% 10%, rgba(255, 210, 160, 0.08), transparent 20%),
+    linear-gradient(180deg, #1a1512 0%, #120f0d 100%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at center, black 35%, transparent 90%);
+  pointer-events: none;
+  opacity: 0.18;
+}
+
+.light-theme {
+  --bg: #f4ede4;
+  --bg-soft: #ebe2d8;
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-strong: rgba(255, 251, 246, 0.96);
+  --text: #1b1714;
+  --muted: #6d6054;
+  --line: rgba(39, 27, 17, 0.12);
+  --shadow: 0 22px 60px rgba(88, 62, 33, 0.08);
+}
+
+.light-theme body {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(223, 109, 43, 0.12), transparent 24%),
+    radial-gradient(circle at 84% 10%, rgba(255, 214, 170, 0.16), transparent 20%),
+    linear-gradient(180deg, #f7f1ea 0%, #efe6db 100%);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.title,
+.brand .title {
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  letter-spacing: -0.03em;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input,
+select,
+textarea,
+button {
+  outline: none;
+}
+
+.material-icon {
+  font-family: 'Material Symbols Rounded', sans-serif;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.container {
+  width: min(var(--container), calc(100vw - 2rem));
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  box-shadow: var(--shadow);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 46px;
+  padding: 0.75rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), #f39a5e);
+  color: #fff8f1;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+  box-shadow: 0 14px 30px rgba(182, 74, 18, 0.24);
+}
+
+.pill:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.04);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.72rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  transition: background 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+
+.btn-ghost:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.eyebrow {
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+::selection {
+  background: rgba(223, 109, 43, 0.28);
+}
+
+@keyframes rise-fade {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: min(var(--container), calc(100vw - 1.25rem));
+  }
+}

@@ -1,0 +1,104 @@
+<section class="container payment-shell">
+  <div class="state-card error" *ngIf="error">{{ error }}</div>
+  <div class="state-card" *ngIf="loading">Loading payment step...</div>
+
+  <ng-container *ngIf="!loading && order as currentOrder">
+    <section class="payment-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Payment</p>
+        <h1>{{ pageHeadline }}</h1>
+        <p class="hero-text">{{ supportCopy }}</p>
+
+        <div class="progress-strip">
+          <div class="progress-step done">
+            <span>1</span>
+            <strong>Review</strong>
+          </div>
+          <div class="progress-step active">
+            <span>2</span>
+            <strong>Pay</strong>
+          </div>
+          <div class="progress-step">
+            <span>3</span>
+            <strong>Done</strong>
+          </div>
+        </div>
+
+        <div class="hero-tags">
+          <span>{{ currentOrder.summary.orderNumber }}</span>
+          <span>{{ currentOrder.summary.itemCount }} item{{ currentOrder.summary.itemCount === 1 ? '' : 's' }}</span>
+          <span>Tax waived off</span>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button
+          class="pill primary-cta"
+          type="button"
+          *ngIf="isRazorpayProvider; else simulatedPrimary"
+          (click)="launchRazorpayCheckout()"
+          [disabled]="processing || !currentOrder.payment?.publicKey || !currentOrder.payment?.providerOrderId"
+        >
+          {{ primaryActionLabel }}
+        </button>
+
+        <ng-template #simulatedPrimary>
+          <button class="pill primary-cta" type="button" (click)="simulate('success')" [disabled]="processing">
+            {{ primaryActionLabel }}
+          </button>
+        </ng-template>
+
+        <div class="secondary-actions">
+          <a class="btn-ghost" [routerLink]="['/order', currentOrder.summary.orderNumber]">Review order</a>
+          <button class="btn-ghost cancel-action" type="button" (click)="cancelPayment()" [disabled]="processing">
+            Cancel order
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="payment-layout">
+      <section class="payment-panel">
+        <div class="provider-badge">{{ providerMonogram }}</div>
+
+        <div class="payment-copy">
+          <p class="eyebrow">{{ providerLabel }}</p>
+          <h2>{{ isRazorpayProvider ? 'Secure window opens next.' : 'Confirm and finish this order.' }}</h2>
+        </div>
+
+        <div class="visual-points">
+          <article class="visual-point">
+            <strong>Secure</strong>
+            <span>Protected checkout flow</span>
+          </article>
+          <article class="visual-point">
+            <strong>Fast</strong>
+            <span>Automatic return after payment</span>
+          </article>
+          <article class="visual-point">
+            <strong>Live</strong>
+            <span>Order updates as soon as payment is confirmed</span>
+          </article>
+        </div>
+      </section>
+
+      <aside class="summary-panel">
+        <p class="eyebrow">Order total</p>
+        <h2>{{ formatPrice(currentOrder.summary.totalCents) }}</h2>
+
+        <div class="summary-list">
+          <article class="summary-item" *ngFor="let item of currentOrder.items">
+            <div class="summary-image">
+              <img [src]="item.coverImage || 'assets/logo.svg'" [alt]="item.title" />
+            </div>
+            <div class="summary-copy">
+              <strong>{{ item.title }}</strong>
+              <span>Qty {{ item.quantity }}</span>
+            </div>
+            <strong>{{ formatPrice(item.lineTotalCents) }}</strong>
+          </article>
+        </div>
+      </aside>
+    </div>
+  </ng-container>
+</section>

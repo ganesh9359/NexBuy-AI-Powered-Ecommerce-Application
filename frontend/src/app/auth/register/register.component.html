@@ -1,0 +1,76 @@
+<section class="login-hero">
+  <div class="glow"></div>
+  <div class="card">
+    <div class="brand-row">
+      <img src="assets/logo.svg" alt="NexBuy" />
+      <div class="title">{{ otpStep ? 'Verify your email' : 'Create account' }}</div>
+      <p class="muted">
+        {{ otpStep ? 'Enter the code we sent to ' + emailForOtp : 'Sign up to save your cart and get recommendations.' }}
+      </p>
+    </div>
+
+    <div class="social-row top" *ngIf="!otpStep">
+      <button class="social google" type="button" (click)="socialLogin('google')">Continue with Google</button>
+      <span class="muted">or fill the form</span>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <ng-container *ngIf="!otpStep">
+        <div class="form-grid">
+          <div>
+            <label>First name</label>
+            <input type="text" formControlName="firstName" placeholder="First name" />
+          </div>
+          <div>
+            <label>Last name</label>
+            <input type="text" formControlName="lastName" placeholder="Last name (optional)" />
+          </div>
+        </div>
+
+        <label>Phone (optional)</label>
+        <input type="tel" formControlName="phone" placeholder="Phone" />
+
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="you@example.com" />
+
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;" />
+
+        <div class="form-grid">
+          <div>
+            <label>Address line</label>
+            <input type="text" formControlName="line1" placeholder="Street / locality" />
+          </div>
+          <div>
+            <label>City</label>
+            <input type="text" formControlName="city" placeholder="City" />
+          </div>
+          <div>
+            <label>State</label>
+            <input type="text" formControlName="state" placeholder="State" />
+          </div>
+          <div>
+            <label>Postal code</label>
+            <input type="text" formControlName="postalCode" placeholder="Postal code" />
+          </div>
+          <div>
+            <label>Country</label>
+            <input type="text" formControlName="country" placeholder="Country" />
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="otpStep">
+        <label>One-time code</label>
+        <input type="text" formControlName="otp" placeholder="6-digit code" />
+      </ng-container>
+
+      <button class="pill" type="submit" [disabled]="loading">
+        {{ loading ? (otpStep ? 'Verifying...' : 'Creating...') : (otpStep ? 'Verify & continue' : 'Create account') }}
+      </button>
+      <div class="error" *ngIf="error">{{ error }}</div>
+    </form>
+
+    <div class="switch">Already have an account? <a routerLink="/auth/login">Sign in</a></div>
+  </div>
+</section>

@@ -1,0 +1,85 @@
+<section class="container cart-shell">
+  <div class="cart-head">
+    <div>
+      <p class="eyebrow">Your cart</p>
+      <h1>Review items before checkout.</h1>
+    </div>
+    <a class="btn-ghost" routerLink="/product/catalog">Keep shopping</a>
+  </div>
+
+  <div class="state-card error" *ngIf="error">{{ error }}</div>
+  <div class="state-card stock-alert" *ngIf="!error && hasStockIssues">{{ stockIssueSummary }}</div>
+  <div class="state-card" *ngIf="loading">Loading your cart...</div>
+
+  <ng-container *ngIf="!loading && cart as activeCart">
+    <ng-container *ngIf="activeCart.items.length; else emptyCartTpl">
+      <div class="cart-layout">
+        <section class="cart-list">
+          <article class="cart-row" *ngFor="let item of activeCart.items; trackBy: trackByItemId">
+            <a class="item-image" [routerLink]="['/product', item.slug]">
+              <img [src]="item.coverImage || 'assets/logo.svg'" [alt]="item.title" />
+            </a>
+
+            <div class="item-copy">
+              <p class="eyebrow">{{ item.categoryName || 'Catalog item' }}<span *ngIf="item.brandName"> / {{ item.brandName }}</span></p>
+              <a class="item-title" [routerLink]="['/product', item.slug]">{{ item.title }}</a>
+              <p class="item-meta">{{ item.variantName || 'Default variant' }}<span *ngIf="item.sku"> ? SKU {{ item.sku }}</span></p>
+              <span class="stock-pill" [class.low]="item.lowStock && item.purchasable" [class.out]="!item.purchasable">{{ item.stockLabel }}</span>
+              <p class="stock-note" [class.issue]="!item.purchasable">{{ item.stockMessage }}</p>
+            </div>
+
+            <div class="qty-controls">
+              <button type="button" (click)="decrease(item)" [disabled]="busyItemId === item.itemId">-</button>
+              <span>{{ item.quantity }}</span>
+              <button type="button" (click)="increase(item)" [disabled]="busyItemId === item.itemId || !canIncrease(item)">+</button>
+            </div>
+
+            <div class="line-total">
+              <strong>{{ formatPrice(item.lineTotalCents) }}</strong>
+              <button class="text-button" type="button" (click)="remove(item)" [disabled]="busyItemId === item.itemId">Remove</button>
+            </div>
+          </article>
+        </section>
+
+        <aside class="summary-panel">
+          <p class="eyebrow">Summary</p>
+          <h2>{{ activeCart.totals.itemCount }} item{{ activeCart.totals.itemCount === 1 ? '' : 's' }}</h2>
+
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong>{{ formatPrice(activeCart.totals.subtotalCents) }}</strong>
+          </div>
+          <div class="summary-row muted-row">
+            <span>Tax (waived off)</span>
+            <span>{{ formatPrice(activeCart.totals.taxCents) }}</span>
+          </div>
+          <div class="summary-row muted-row">
+            <span>Shipping</span>
+            <span>{{ activeCart.totals.shippingCents ? formatPrice(activeCart.totals.shippingCents) : 'Free' }}</span>
+          </div>
+          <div class="summary-row total-row">
+            <span>Total</span>
+            <strong>{{ formatPrice(activeCart.totals.totalCents) }}</strong>
+          </div>
+
+          <div class="summary-alert" *ngIf="hasStockIssues">
+            <strong>Update the cart to continue.</strong>
+            <span>{{ stockIssueSummary }}</span>
+          </div>
+
+          <button class="pill" type="button" (click)="goToCheckout()" [disabled]="hasStockIssues">Proceed to checkout</button>
+          <button class="btn-ghost" type="button" (click)="clear()" [disabled]="clearing">{{ clearing ? 'Clearing...' : 'Clear cart' }}</button>
+        </aside>
+      </div>
+    </ng-container>
+  </ng-container>
+</section>
+
+<ng-template #emptyCartTpl>
+  <section class="empty-state">
+    <p class="eyebrow">Cart is empty</p>
+    <h2>Add something worth checking out.</h2>
+    <p>Open a product and use the buy or add-to-cart actions to start checkout.</p>
+    <a class="pill" routerLink="/product/catalog">Browse catalog</a>
+  </section>
+</ng-template>

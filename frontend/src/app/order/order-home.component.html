@@ -1,0 +1,71 @@
+<section class="container order-shell">
+  <header class="orders-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Orders</p>
+      <h1>Track every purchase from one clean workspace.</h1>
+      <p>
+        Review placed orders, payment progress, and delivery status without digging through separate screens.
+      </p>
+    </div>
+
+    <div class="hero-stats" *ngIf="!loading && orders.length">
+      <div class="stat-pill">
+        <span class="stat-label">Orders placed</span>
+        <strong>{{ orders.length }}</strong>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">Payments cleared</span>
+        <strong>{{ completedOrdersCount }}</strong>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">Total spent</span>
+        <strong>{{ formatPrice(totalSpentCents) }}</strong>
+      </div>
+    </div>
+
+    <a class="btn-ghost hero-action" routerLink="/product/catalog">Shop again</a>
+  </header>
+
+  <div class="state-card error" *ngIf="error">{{ error }}</div>
+  <div class="state-card" *ngIf="loading">Loading your orders...</div>
+
+  <ng-container *ngIf="!loading">
+    <section class="empty-state" *ngIf="!orders.length; else ordersTpl">
+      <p class="eyebrow">No orders yet</p>
+      <h2>Your order history will appear here once you place your first purchase.</h2>
+      <p>Use the catalog to add items, complete checkout, and start tracking them from this page.</p>
+      <a class="pill" routerLink="/product/catalog">Browse catalog</a>
+    </section>
+  </ng-container>
+</section>
+
+<ng-template #ordersTpl>
+  <section class="orders-board">
+    <div class="board-head">
+      <div>
+        <p class="eyebrow">Recent activity</p>
+        <h2>{{ activeOrdersCount }} active order{{ activeOrdersCount === 1 ? '' : 's' }} still moving through the system.</h2>
+      </div>
+    </div>
+
+    <div class="order-list">
+      <a class="order-row" *ngFor="let order of orders" [routerLink]="['/order', order.orderNumber]">
+        <div class="order-main">
+          <p class="eyebrow">{{ order.orderNumber }}</p>
+          <h3>{{ formatDate(order.placedAt) }}</h3>
+          <p>{{ order.itemCount }} item{{ order.itemCount === 1 ? '' : 's' }} in this order</p>
+        </div>
+
+        <div class="status-stack">
+          <span class="status-chip" [ngClass]="'tone-' + statusTone(order.status)">{{ prettify(order.status) }}</span>
+          <span class="status-chip subtle" [ngClass]="'tone-' + statusTone(order.paymentStatus)">{{ prettify(order.paymentStatus) }}</span>
+        </div>
+
+        <div class="order-total">
+          <strong>{{ formatPrice(order.totalCents) }}</strong>
+          <span>Open order detail</span>
+        </div>
+      </a>
+    </div>
+  </section>
+</ng-template>

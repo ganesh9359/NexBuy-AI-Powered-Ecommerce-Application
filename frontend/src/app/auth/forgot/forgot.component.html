@@ -1,0 +1,13 @@
+﻿<section class="auth-card">
+  <h2>Forgot password</h2>
+  <p class="muted">Enter your email and we will send an OTP to reset your password.</p>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    <label>Email</label>
+    <input type="email" formControlName="email" placeholder="you@example.com" />
+    <div class="error" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">Valid email required</div>
+    <button class="pill" type="submit" [disabled]="loading">{{ loading ? 'Sending...' : 'Send OTP' }}</button>
+  </form>
+  <div class="success" *ngIf="success">{{ success }}</div>
+  <div class="error" *ngIf="error">{{ error }}</div>
+  <div class="muted small">Remembered? <a routerLink="/auth/login">Go to login</a></div>
+</section>

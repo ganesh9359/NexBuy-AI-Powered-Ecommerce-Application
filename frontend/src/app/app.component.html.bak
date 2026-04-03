@@ -1,0 +1,26 @@
+<div class="login-modal" *ngIf="showLoginModal">
+  <div class="modal-backdrop" (click)="closeLogin()"></div>
+  <div class="modal-card">
+    <div class="modal-brand">
+      <img src="assets/logo.svg" alt="NexBuy" />
+      <span>NexBuy</span>
+    </div>
+    <h3>{{ authMode === 'login' ? 'Welcome back' : 'Create account' }}</h3>
+    <p class="muted">{{ authMode === 'login' ? 'Sign in to track orders, save your cart, and get AI picks.' : 'Sign up to save your cart and get recommendations.' }}</p>
+
+    <label *ngIf="authMode === 'register'">Name</label>
+    <input *ngIf="authMode === 'register'" type="text" [(ngModel)]="loginName" placeholder="Your name" />
+
+    <label>Email</label>
+    <input type="email" [(ngModel)]="loginEmail" placeholder="you@example.com" />
+    <label>Password</label>
+    <input type="password" [(ngModel)]="loginPassword" placeholder="••••••" />
+
+    <div class="error" *ngIf="loginError">{{ loginError }}</div>
+    <button class="pill" (click)="submitLogin()" [disabled]="loggingIn">{{ loggingIn ? (authMode === 'login' ? 'Signing in...' : 'Creating...') : (authMode === 'login' ? 'Sign in' : 'Create account') }}</button>
+    <button class="btn-ghost" (click)="authMode = authMode === 'login' ? 'register' : 'login'">
+      {{ authMode === 'login' ? 'Create account' : 'Have an account? Sign in' }}
+    </button>
+  </div>
+</div>
+

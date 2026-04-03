@@ -1,0 +1,209 @@
+<section class="container checkout-shell">
+  <header class="checkout-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Checkout</p>
+      <h1>Choose delivery details and confirm payment with confidence.</h1>
+      <p class="hero-text">
+        Review your address, keep tax waived off, and send this order into the protected payment flow without losing context.
+      </p>
+      <div class="hero-points">
+        <span>Secure payment verification</span>
+        <span>Tax waived off</span>
+        <span>Live stock check before confirmation</span>
+      </div>
+    </div>
+
+    <div class="hero-side" *ngIf="checkout as view">
+      <p class="eyebrow">Signed in</p>
+      <strong>{{ view.profile.email }}</strong>
+      <span>{{ view.addresses.length }} saved address{{ view.addresses.length === 1 ? '' : 'es' }}</span>
+      <span>{{ providerTitle(view.recommendedProvider) }} recommended</span>
+    </div>
+
+    <a class="btn-ghost hero-action" routerLink="/cart">Back to cart</a>
+  </header>
+
+  <div class="state-card error" *ngIf="error">{{ error }}</div>
+  <div class="state-card stock-alert" *ngIf="!error && hasStockIssues">{{ stockIssueSummary }}</div>
+  <div class="state-card" *ngIf="loading">Preparing checkout...</div>
+
+  <ng-container *ngIf="!loading && checkout as view">
+    <div class="checkout-layout">
+      <section class="checkout-main">
+        <section class="panel-block account-panel">
+          <div class="section-head compact-head">
+            <div>
+              <p class="eyebrow">Account snapshot</p>
+              <h2>Everything needed for this purchase is lined up here.</h2>
+            </div>
+          </div>
+
+          <div class="account-grid">
+            <div class="account-stat">
+              <span class="meta-label">Contact</span>
+              <strong>{{ view.profile.email }}</strong>
+            </div>
+            <div class="account-stat">
+              <span class="meta-label">Items</span>
+              <strong>{{ view.cart.totals.itemCount }} in this order</strong>
+            </div>
+            <div class="account-stat">
+              <span class="meta-label">Preferred payment</span>
+              <strong>{{ providerTitle(view.recommendedProvider) }}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-block">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Shipping address</p>
+              <h2>Pick where this order should be delivered.</h2>
+            </div>
+            <button class="btn-ghost" type="button" (click)="showAddressForm = !showAddressForm">{{ showAddressForm ? 'Close form' : 'Add address' }}</button>
+          </div>
+
+          <div class="address-form" *ngIf="showAddressForm">
+            <input [(ngModel)]="addressForm.label" placeholder="Label" />
+            <input [(ngModel)]="addressForm.line1" placeholder="Address line 1" />
+            <input [(ngModel)]="addressForm.line2" placeholder="Address line 2" />
+            <input [(ngModel)]="addressForm.city" placeholder="City" />
+            <input [(ngModel)]="addressForm.state" placeholder="State" />
+            <input [(ngModel)]="addressForm.postalCode" placeholder="Postal code" />
+            <input [(ngModel)]="addressForm.country" placeholder="Country" />
+            <label class="checkbox-row checkbox-span">
+              <input type="checkbox" [(ngModel)]="addressForm.isDefault" />
+              <span>Make this my default address</span>
+            </label>
+            <button class="pill form-action" type="button" (click)="saveAddress()" [disabled]="savingAddress">{{ savingAddress ? 'Saving...' : 'Save address' }}</button>
+          </div>
+
+          <div class="address-grid" *ngIf="view.addresses.length; else noAddressTpl">
+            <label class="address-card" *ngFor="let address of view.addresses; trackBy: trackByAddress" [class.active]="selectedShippingId === address.id">
+              <input type="radio" name="shippingAddress" [value]="address.id" [(ngModel)]="selectedShippingId" />
+              <div class="card-topline">
+                <strong>{{ address.label || 'Saved address' }}</strong>
+                <span class="mini-badge" *ngIf="address.isDefault">Default</span>
+              </div>
+              <span>{{ address.displayText }}</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel-block">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Billing address</p>
+              <h2>Keep it the same or choose another saved address.</h2>
+            </div>
+          </div>
+
+          <label class="checkbox-row billing-toggle">
+            <input type="checkbox" [(ngModel)]="billingSameAsShipping" />
+            <span>Billing address is the same as shipping</span>
+          </label>
+
+          <div class="billing-inline" *ngIf="billingSameAsShipping">
+            Your selected shipping address will be reused for billing and invoices.
+          </div>
+
+          <div class="address-grid" *ngIf="!billingSameAsShipping && view.addresses.length">
+            <label class="address-card secondary" *ngFor="let address of view.addresses; trackBy: trackByAddress" [class.active]="selectedBillingId === address.id">
+              <input type="radio" name="billingAddress" [value]="address.id" [(ngModel)]="selectedBillingId" />
+              <div class="card-topline">
+                <strong>{{ address.label || 'Saved address' }}</strong>
+                <span class="mini-badge" *ngIf="address.isDefault">Default</span>
+              </div>
+              <span>{{ address.displayText }}</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel-block">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Payment method</p>
+              <h2>Choose the payment route that fits this order.</h2>
+            </div>
+          </div>
+
+          <div class="provider-grid">
+            <label class="provider-card" *ngFor="let provider of view.availableProviders" [class.active]="selectedProvider === provider">
+              <input type="radio" name="provider" [value]="provider" [(ngModel)]="selectedProvider" />
+              <div class="card-topline">
+                <strong>{{ providerTitle(provider) }}</strong>
+                <span class="mini-badge" *ngIf="provider === view.recommendedProvider">Recommended</span>
+              </div>
+              <p>{{ providerDescription(provider) }}</p>
+              <span>{{ providerSupportCopy(provider) }}</span>
+            </label>
+          </div>
+        </section>
+      </section>
+
+      <aside class="summary-panel">
+        <div class="summary-head">
+          <p class="eyebrow">Review and place order</p>
+          <h2>{{ view.cart.totals.itemCount }} item{{ view.cart.totals.itemCount === 1 ? '' : 's' }}</h2>
+          <p>Your order will only be confirmed after address, stock, and payment checks are complete.</p>
+        </div>
+
+        <div class="summary-alert" *ngIf="hasStockIssues">
+          <strong>Some items are above available stock.</strong>
+          <span>{{ stockIssueSummary }}</span>
+        </div>
+
+        <div class="summary-items">
+          <article class="summary-item" *ngFor="let item of view.cart.items">
+            <div class="summary-image">
+              <img [src]="item.coverImage || 'assets/logo.svg'" [alt]="item.title" />
+            </div>
+            <div class="summary-copy">
+              <strong>{{ item.title }}</strong>
+              <span>{{ item.variantName || item.sku }}</span>
+              <small>{{ item.quantity }} x {{ formatPrice(item.unitPriceCents) }}</small>
+              <div class="summary-stock">
+                <span class="stock-chip" [class.low]="item.lowStock && item.purchasable" [class.out]="!item.purchasable">{{ item.stockLabel }}</span>
+                <small [class.issue]="!item.purchasable">{{ item.stockMessage }}</small>
+              </div>
+            </div>
+            <strong class="summary-total">{{ formatPrice(item.lineTotalCents) }}</strong>
+          </article>
+        </div>
+
+        <div class="totals-card">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong>{{ formatPrice(view.cart.totals.subtotalCents) }}</strong>
+          </div>
+          <div class="summary-row muted-row">
+            <span>Tax (waived off)</span>
+            <span>{{ formatPrice(view.cart.totals.taxCents) }}</span>
+          </div>
+          <div class="summary-row muted-row">
+            <span>Shipping</span>
+            <span>{{ view.cart.totals.shippingCents ? formatPrice(view.cart.totals.shippingCents) : 'Free' }}</span>
+          </div>
+          <div class="summary-row grand-row">
+            <span>Total</span>
+            <strong>{{ formatPrice(view.cart.totals.totalCents) }}</strong>
+          </div>
+        </div>
+
+        <div class="summary-note">
+          <strong>{{ view.cart.totals.shippingCents ? 'Shipping will be added at the current rate.' : 'Free shipping is unlocked for this order.' }}</strong>
+          <span>Once the payment is confirmed, the order moves directly into the tracking flow.</span>
+        </div>
+
+        <button class="pill place-action" type="button" (click)="placeOrder()" [disabled]="submitting || hasStockIssues">{{ submitting ? 'Placing order...' : placeOrderLabel() }}</button>
+      </aside>
+    </div>
+  </ng-container>
+</section>
+
+<ng-template #noAddressTpl>
+  <div class="empty-inline">
+    <strong>No saved address yet.</strong>
+    <p>Add one address to continue with checkout.</p>
+  </div>
+</ng-template>

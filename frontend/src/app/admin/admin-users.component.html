@@ -1,0 +1,44 @@
+<section class="panel users-panel">
+  <div class="panel-toolbar">
+    <div>
+      <p class="eyebrow">Account directory</p>
+      <h4>{{ filteredUsers.length }} users</h4>
+    </div>
+    <input [(ngModel)]="query" placeholder="Search email, phone, role, status" />
+  </div>
+
+  <div class="table-wrap" *ngIf="!loading; else loadingTpl">
+    <table *ngIf="filteredUsers.length; else emptyTpl">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Phone</th>
+          <th>Created</th>
+          <th>Last login</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>
+            <strong>{{ user.email }}</strong>
+          </td>
+          <td><span class="badge role">{{ user.role }}</span></td>
+          <td><span class="badge status">{{ user.status }}</span></td>
+          <td>{{ user.phone || '-' }}</td>
+          <td>{{ user.createdAt | date:'mediumDate' }}</td>
+          <td>{{ user.lastLoginAt ? (user.lastLoginAt | date:'medium') : 'Never' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<ng-template #loadingTpl>
+  <section class="panel empty-state">Loading users...</section>
+</ng-template>
+
+<ng-template #emptyTpl>
+  <div class="empty-state">No users found for that search.</div>
+</ng-template>

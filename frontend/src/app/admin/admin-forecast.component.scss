@@ -1,0 +1,279 @@
+.forecast-shell,
+.metric-strip,
+.projection-grid,
+.insight-grid,
+.detail-grid,
+.action-list,
+.projection-list,
+.risk-list,
+.demand-list,
+.status-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.forecast-header,
+.panel,
+.metric-tile,
+.state-panel {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.06);
+}
+
+.forecast-header,
+.panel,
+.metric-tile,
+.state-panel {
+  padding: 1.2rem 1.25rem;
+}
+
+.forecast-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.forecast-header h2,
+.panel-head h3,
+.metric-tile strong {
+  margin: 0;
+}
+
+.lede,
+.metric-tile small,
+.insight-copy,
+.status-row span,
+.demand-row span,
+.risk-row span,
+.risk-row small,
+.state-panel p {
+  color: #475569;
+  margin: 0;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.window-pill,
+.panel-tag {
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.05);
+  color: #0f172a;
+  font-size: 0.88rem;
+}
+
+.panel-tag {
+  background: rgba(249, 115, 22, 0.12);
+  color: #c2410c;
+}
+
+.panel-tag.subtle {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+}
+
+.metric-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric-tile {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.metric-tile span {
+  color: #64748b;
+}
+
+.metric-tile strong {
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.metric-tile.focus {
+  background: linear-gradient(135deg, rgba(255, 237, 213, 0.95), rgba(255, 255, 255, 0.94));
+}
+
+.metric-tile.warning {
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.95), rgba(255, 255, 255, 0.94));
+}
+
+.projection-grid,
+.insight-grid,
+.detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.projection-row {
+  display: grid;
+  grid-template-columns: 62px 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.bar-track {
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.bar-fill.orders {
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
+.bar-fill.forecast {
+  opacity: 0.65;
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0.24) 10px,
+      transparent 10px,
+      transparent 18px
+    ),
+    linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.bar-fill.orders.forecast {
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0.24) 10px,
+      transparent 10px,
+      transparent 18px
+    ),
+    linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
+.insight-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.status-row,
+.demand-row,
+.risk-row,
+.action-row {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  border-radius: 22px;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.status-row strong,
+.demand-row strong,
+.risk-row strong {
+  color: #0f172a;
+}
+
+.demand-row,
+.risk-row {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.demand-meta,
+.risk-meta {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: end;
+  text-align: right;
+}
+
+.demand-meta em,
+.risk-meta em {
+  font-style: normal;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.risk-meta small {
+  max-width: 220px;
+}
+
+.action-row {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+
+.action-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 0.45rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f97316, #facc15);
+  box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.12);
+}
+
+.action-row p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.state-panel {
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .metric-strip,
+  .projection-grid,
+  .insight-grid,
+  .detail-grid,
+  .forecast-header {
+    grid-template-columns: 1fr;
+  }
+
+  .header-meta {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .forecast-header,
+  .panel,
+  .metric-tile,
+  .state-panel {
+    border-radius: 22px;
+  }
+
+  .projection-row,
+  .demand-row,
+  .risk-row {
+    grid-template-columns: 1fr;
+  }
+
+  .demand-meta,
+  .risk-meta {
+    justify-items: start;
+    text-align: left;
+  }
+}

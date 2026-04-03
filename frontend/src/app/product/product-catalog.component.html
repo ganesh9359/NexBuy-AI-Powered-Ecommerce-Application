@@ -1,0 +1,202 @@
+<section class="catalog-shell">
+  <ng-container *ngIf="!loading; else loadingTpl">
+    <div class="error-card" *ngIf="error">
+      <p>{{ error }}</p>
+      <button class="pill" type="button" (click)="retry()">Try again</button>
+    </div>
+
+    <ng-container *ngIf="!error && response as res">
+      <section class="catalog-hero" *ngIf="res.items.length">
+        <div class="catalog-hero-media">
+          <img [src]="primaryImage(res.items[0])" [alt]="res.items[0].title" />
+        </div>
+        <div class="catalog-hero-wash"></div>
+        <div class="container catalog-hero-inner">
+          <div class="catalog-intro">
+            <p class="eyebrow">Live browse</p>
+            <h1>{{ currentTitle }}</h1>
+            <p>{{ currentSubtitle }}</p>
+          </div>
+          <div class="hero-facts">
+            <div>
+              <span class="fact-label">Visible results</span>
+              <strong>{{ res.totalItems }}</strong>
+            </div>
+            <div>
+              <span class="fact-label">Current page</span>
+              <strong>{{ res.page }} / {{ res.totalPages || 1 }}</strong>
+            </div>
+            <div>
+              <span class="fact-label">Sort</span>
+              <strong>{{ (filterForm.sort || 'newest').replace('_', ' ') }}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="container status-row">
+        <span>{{ res.totalItems }} products</span>
+        <span *ngIf="activeQuery">Search: {{ activeQuery }}</span>
+        <span *ngIf="activeCategoryLabel">Category: {{ activeCategoryLabel }}</span>
+        <span *ngIf="filterForm.inStock">In stock only</span>
+      </div>
+
+      <div class="container catalog-layout">
+        <aside class="filter-panel">
+          <section class="panel-block">
+            <div class="block-head">
+              <h3>Refine browse</h3>
+              <button class="text-button" type="button" (click)="clearFilters()">Reset</button>
+            </div>
+
+            <label for="brandSelect">Brand</label>
+            <select id="brandSelect" [(ngModel)]="filterForm.brand">
+              <option value="">All brands</option>
+              <option *ngFor="let brand of res.filters.brands" [value]="brand.slug">
+                {{ brand.name }} ({{ brand.productCount }})
+              </option>
+            </select>
+
+            <label for="tagSelect">Tag</label>
+            <select id="tagSelect" [(ngModel)]="filterForm.tag">
+              <option value="">All tags</option>
+              <option *ngFor="let tag of res.filters.tags" [value]="tag.tag">
+                {{ tag.tag }} ({{ tag.productCount }})
+              </option>
+            </select>
+
+            <div class="price-inputs">
+              <div>
+                <label for="minPrice">Min price</label>
+                <input id="minPrice" type="number" min="0" [(ngModel)]="filterForm.minPrice" placeholder="Rs" />
+              </div>
+              <div>
+                <label for="maxPrice">Max price</label>
+                <input id="maxPrice" type="number" min="0" [(ngModel)]="filterForm.maxPrice" placeholder="Rs" />
+              </div>
+            </div>
+
+            <label class="stock-toggle">
+              <input type="checkbox" [(ngModel)]="filterForm.inStock" />
+              <span>Only show products currently in stock</span>
+            </label>
+
+            <button class="pill" type="button" (click)="applyFilters()">Apply filters</button>
+          </section>
+
+          <section class="panel-block" *ngIf="res.filters.categories.length">
+            <div class="block-head">
+              <h3>Categories</h3>
+            </div>
+            <button
+              type="button"
+              class="category-link"
+              *ngFor="let category of res.filters.categories"
+              [class.active]="category.slug === activeCategorySlug"
+              (click)="goToCategory(category.slug)"
+            >
+              <span>{{ category.name }}</span>
+              <strong>{{ category.productCount }}</strong>
+            </button>
+          </section>
+        </aside>
+
+        <div class="results-panel">
+          <div class="toolbar">
+            <div class="toolbar-copy">
+              <strong>{{ res.totalItems }} results</strong>
+              <span *ngIf="res.filters.priceRange.maxCents">
+                Range up to {{ formatPrice(res.filters.priceRange.maxCents) }}
+              </span>
+            </div>
+
+            <div class="toolbar-controls">
+              <label>
+                <span>Sort</span>
+                <select [(ngModel)]="filterForm.sort" (ngModelChange)="applyFilters()">
+                  <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Show</span>
+                <select [ngModel]="res.size" (ngModelChange)="changePageSize($event)">
+                  <option *ngFor="let pageSize of pageSizes" [ngValue]="pageSize">{{ pageSize }}</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="quick-tags" *ngIf="res.filters.tags.length">
+            <button
+              type="button"
+              class="tag-chip"
+              *ngFor="let tag of res.filters.tags | slice:0:10"
+              [class.active]="filterForm.tag === tag.tag"
+              (click)="selectTag(tag.tag)"
+            >
+              {{ tag.tag }}
+              <span>{{ tag.productCount }}</span>
+            </button>
+          </div>
+
+          <div class="product-grid" *ngIf="res.items.length; else emptyTpl">
+            <article class="product-tile" *ngFor="let product of res.items">
+              <a class="image-wrap" [routerLink]="['/product', product.slug]">
+                <img [src]="primaryImage(product)" [alt]="product.title" />
+              </a>
+              <div class="tile-copy">
+                <div class="meta-row">
+                  <span>{{ product.categoryName }}</span>
+                  <span *ngIf="product.brandName">{{ product.brandName }}</span>
+                </div>
+                <a class="title" [routerLink]="['/product', product.slug]">{{ product.title }}</a>
+                <p class="description">{{ product.description }}</p>
+                <div class="tag-list" *ngIf="product.tags.length">
+                  <span *ngFor="let tag of product.tags | slice:0:3">{{ tag }}</span>
+                </div>
+                <div class="tile-footer">
+                  <div class="price-row">
+                    <strong>{{ formatPrice(product.priceCents) }}</strong>
+                    <span class="compare" *ngIf="product.compareAtCents">{{ formatPrice(product.compareAtCents) }}</span>
+                  </div>
+                  <span class="stock" [class.low]="product.stock.lowStock" [class.out]="!product.stock.inStock">
+                    {{ product.stock.label }}
+                  </span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <ng-template #emptyTpl>
+            <div class="empty-state">
+              <h3>No matching products</h3>
+              <p>Try clearing a filter or exploring a different category.</p>
+              <button class="pill" type="button" (click)="clearFilters()">Reset filters</button>
+            </div>
+          </ng-template>
+
+          <div class="pagination" *ngIf="res.totalPages > 1">
+            <button class="btn-ghost" type="button" (click)="setPage(res.page - 1)" [disabled]="res.page <= 1">Previous</button>
+            <button
+              type="button"
+              class="page-btn"
+              *ngFor="let page of visiblePages()"
+              [class.active]="page === res.page"
+              (click)="setPage(page)"
+            >
+              {{ page }}
+            </button>
+            <button class="btn-ghost" type="button" (click)="setPage(res.page + 1)" [disabled]="res.page >= res.totalPages">Next</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</section>
+
+<ng-template #loadingTpl>
+  <section class="container loading-state">
+    <div class="loading-card">Loading catalog results...</div>
+  </section>
+</ng-template>

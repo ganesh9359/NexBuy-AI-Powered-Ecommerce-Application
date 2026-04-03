@@ -1,0 +1,5 @@
+      <ng-container *ngIf="otpStep">
+        <label>One-time code</label>
+        <input type="text" formControlName="otp" placeholder="6-digit code" />
+        <button type="button" class="btn-ghost" (click)="resend()" [disabled]="loading">Resend code</button>
+      </ng-container>

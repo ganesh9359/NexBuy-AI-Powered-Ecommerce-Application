@@ -1,0 +1,348 @@
+<ng-container *ngIf="!isAdminLayout">
+  <header class="shell">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="NexBuy logo" />
+      <div>
+        <div class="title">NexBuy</div>
+        <small>Smart shopping</small>
+      </div>
+    </div>
+    <button class="menu-toggle material-icon" (click)="isMenuOpen = !isMenuOpen">menu</button>
+    <nav [class.open]="isMenuOpen" class="main-nav">
+      <a *ngFor="let link of navLinks" [routerLink]="link.path" routerLinkActive="active" (click)="isMenuOpen=false">{{ link.label }}</a>
+    </nav>
+    <div class="search">
+      <div class="search-field" [class.with-image]="!!imagePreview">
+        <div class="search-image-pill" *ngIf="imagePreview">
+          <img [src]="imagePreview" alt="Selected search reference" />
+          <button type="button" class="material-icon" (click)="clearSelectedSearchImage()">close</button>
+        </div>
+        <input
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="submitSearch()"
+          [placeholder]="voiceListening ? 'Listening...' : (selectedSearchImageFile ? 'Add an optional hint and press search' : 'Search products, brands, tags')"
+        />
+      </div>
+      <input #imagePicker type="file" accept="image/*" (change)="onSearchImageSelected($event)" hidden />
+      <div class="search-actions">
+        <button type="button" title="Search catalog" class="material-icon" (click)="submitSearch()" [disabled]="searchBusy">
+          {{ searchBusy ? 'hourglass_top' : 'search' }}
+        </button>
+        <button
+          type="button"
+          title="Use voice search"
+          class="material-icon"
+          [class.is-active]="voiceListening"
+          (click)="toggleVoiceSearch()"
+        >
+          {{ voiceListening ? 'stop_circle' : 'mic' }}
+        </button>
+        <button
+          type="button"
+          title="Choose image"
+          class="material-icon"
+          [class.has-selection]="selectedSearchImageFile"
+          (click)="openImagePicker(imagePicker)"
+        >
+          {{ selectedSearchImageFile ? 'imagesmode' : 'photo_camera' }}
+        </button>
+      </div>
+      <div class="search-status" *ngIf="searchStatus">{{ searchStatus }}</div>
+    </div>
+    <div class="actions">
+      <div class="category-pop">
+        <button class="btn-ghost"><span class="material-icon">category</span> Categories</button>
+        <div class="dropdown">
+          <div class="mega category-mega">
+            <a
+              class="category-link"
+              *ngFor="let category of storeCategories"
+              [routerLink]="['/product/category', category.slug]"
+            >
+              <img [src]="category.imageUrl || 'assets/logo.svg'" [alt]="category.name" />
+              <div>
+                <p class="eyebrow">{{ category.productCount ? category.productCount + ' products' : 'Browse live catalog' }}</p>
+                <strong>{{ category.name }}</strong>
+                <span>{{ category.description }}</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+      <a routerLink="/cart" class="icon-btn material-icon" title="Cart">shopping_cart</a>
+      <div class="profile" (click)="onProfileClick()" [class.open]="showProfileMenu">
+        <button class="icon-btn material-icon" title="Profile">account_circle</button>
+        <div class="profile-menu" *ngIf="isLoggedIn && showProfileMenu">
+          <div class="email">{{ userEmail }}</div>
+          <a *ngIf="isAdmin" routerLink="/admin">Admin dashboard</a>
+          <a routerLink="/user">Profile</a>
+          <a routerLink="/order">Your orders</a>
+          <button (click)="logout()">Logout</button>
+        </div>
+      </div>
+      <button class="icon-btn material-icon" (click)="toggleTheme()" title="Toggle theme">{{ isLight ? 'dark_mode' : 'light_mode' }}</button>
+    </div>
+  </header>
+</ng-container>
+
+<main [class.admin-main]="isAdminLayout">
+  <router-outlet></router-outlet>
+</main>
+
+<div class="login-modal" *ngIf="showLoginModal && !isAdminLayout">
+  <div class="modal-backdrop" (click)="closeLogin()"></div>
+  <div class="modal-card wide">
+    <div class="modal-brand">
+      <img src="assets/logo.svg" alt="NexBuy" />
+      <div>
+        <div class="brand-title">NexBuy</div>
+        <small>Smart shopping</small>
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-form">
+        <h3>{{ modalTitle }}</h3>
+        <p class="muted">{{ modalSubtitle }}</p>
+
+        <div class="form-grid" *ngIf="authMode === 'register' && !otpStep">
+          <div>
+            <label>First name</label>
+            <input type="text" [(ngModel)]="loginFirstName" placeholder="First name" />
+          </div>
+          <div>
+            <label>Last name</label>
+            <input type="text" [(ngModel)]="loginLastName" placeholder="Last name (optional)" />
+          </div>
+        </div>
+
+        <label *ngIf="authMode === 'register' && !otpStep">Phone (optional)</label>
+        <input *ngIf="authMode === 'register' && !otpStep" type="tel" [(ngModel)]="loginPhone" placeholder="Phone" />
+
+        <label>Email</label>
+        <input type="email" [(ngModel)]="loginEmail" placeholder="you@example.com" />
+
+        <label *ngIf="(authMode === 'login' || authMode === 'register') && !otpStep">Password</label>
+        <div class="password-field" *ngIf="(authMode === 'login' || authMode === 'register') && !otpStep">
+          <input [type]="passwordVisibility[authMode === 'login' ? 'login' : 'register'] ? 'text' : 'password'" [(ngModel)]="loginPassword" placeholder="******" />
+          <button class="password-toggle" type="button" (click)="togglePassword(authMode === 'login' ? 'login' : 'register')">
+            {{ passwordVisibility[authMode === 'login' ? 'login' : 'register'] ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+
+        <ng-container *ngIf="authMode === 'register' && !otpStep">
+          <label>Confirm password</label>
+          <div class="password-field">
+            <input [type]="passwordVisibility.registerConfirm ? 'text' : 'password'" [(ngModel)]="registerConfirmPassword" placeholder="Re-enter your password" />
+            <button class="password-toggle" type="button" (click)="togglePassword('registerConfirm')">
+              {{ passwordVisibility.registerConfirm ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+        </ng-container>
+
+        <div class="muted small" *ngIf="authMode === 'login' && !otpStep">
+          <button class="text-link" type="button" (click)="switchAuthMode('forgot')">Forgot password?</button>
+        </div>
+
+        <div *ngIf="authMode === 'register' && !otpStep" class="form-grid">
+          <div>
+            <label>Address line</label>
+            <input type="text" [(ngModel)]="addressLine1" placeholder="Street / locality" />
+          </div>
+          <div>
+            <label>City</label>
+            <input type="text" [(ngModel)]="addressCity" placeholder="City" />
+          </div>
+          <div>
+            <label>State</label>
+            <input type="text" [(ngModel)]="addressState" placeholder="State" />
+          </div>
+          <div>
+            <label>Postal code</label>
+            <input type="text" [(ngModel)]="addressPostal" placeholder="Postal code" />
+          </div>
+          <div>
+            <label>Country</label>
+            <input type="text" [(ngModel)]="addressCountry" placeholder="Country" />
+          </div>
+        </div>
+
+        <ng-container *ngIf="otpStep || authMode === 'reset'">
+          <label>One-time code</label>
+          <input type="text" [(ngModel)]="loginOtp" placeholder="6-digit code" />
+        </ng-container>
+
+        <div class="inline-actions" *ngIf="otpStep">
+          <button class="btn-ghost secondary-action" type="button" (click)="updatePendingEmail()" [disabled]="loggingIn">
+            Update email & resend OTP
+          </button>
+          <button class="text-link" type="button" (click)="resendOtp()" [disabled]="loggingIn">Resend OTP</button>
+        </div>
+
+        <ng-container *ngIf="authMode === 'reset' && !otpStep">
+          <label>New password</label>
+          <div class="password-field">
+            <input [type]="passwordVisibility.reset ? 'text' : 'password'" [(ngModel)]="resetPasswordValue" placeholder="Choose a new password" />
+            <button class="password-toggle" type="button" (click)="togglePassword('reset')">
+              {{ passwordVisibility.reset ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+
+          <label>Confirm new password</label>
+          <div class="password-field">
+            <input [type]="passwordVisibility.resetConfirm ? 'text' : 'password'" [(ngModel)]="resetConfirmPassword" placeholder="Re-enter your new password" />
+            <button class="password-toggle" type="button" (click)="togglePassword('resetConfirm')">
+              {{ passwordVisibility.resetConfirm ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+        </ng-container>
+
+        <div class="notice" *ngIf="loginNotice">{{ loginNotice }}</div>
+        <div class="error" *ngIf="loginError">{{ loginError }}</div>
+
+        <div class="muted small" *ngIf="authMode === 'login' && loginError && !otpStep">
+          Need help signing in? <button class="text-link" type="button" (click)="switchAuthMode('forgot')">Reset your password</button>
+        </div>
+
+        <button class="pill" (click)="submitAuth()" [disabled]="loggingIn">{{ submitLabel }}</button>
+
+        <button class="btn-ghost switcher" type="button" *ngIf="authMode === 'login' && !otpStep" (click)="switchAuthMode('register')">
+          Create account
+        </button>
+        <button class="btn-ghost switcher" type="button" *ngIf="authMode === 'register' && !otpStep" (click)="switchAuthMode('login')">
+          Have an account? Sign in
+        </button>
+        <button class="btn-ghost switcher" type="button" *ngIf="authMode === 'forgot'" (click)="switchAuthMode('login')">
+          Back to sign in
+        </button>
+        <button class="btn-ghost switcher" type="button" *ngIf="authMode === 'reset' && !otpStep" (click)="switchAuthMode('forgot')">
+          Need a fresh OTP?
+        </button>
+
+        <div class="social-row" *ngIf="(authMode === 'login' || authMode === 'register') && !otpStep">
+          <span class="muted">Or continue with</span>
+          <button class="social google" type="button" (click)="socialLogin('google')">Continue with Google</button>
+        </div>
+      </div>
+      <div class="modal-benefits">
+        <h4>Why NexBuy</h4>
+        <ul>
+          <li>Fast checkout & order tracking</li>
+          <li>Smart recommendations by NexBuy AI</li>
+          <li>Save carts across devices</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-container *ngIf="!isAdminLayout">
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="logo-row">
+          <img src="assets/logo.svg" alt="NexBuy" />
+          <span class="title">NexBuy</span>
+        </div>
+        <p>Smart shopping with AI search, fast delivery, and secure payments.</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <a routerLink="/product/catalog">All products</a>
+        <a routerLink="/product/catalog" [queryParams]="{ sort: 'newest' }">New arrivals</a>
+        <a routerLink="/product/catalog" [queryParams]="{ sort: 'price_asc' }">Best value</a>
+        <a routerLink="/product">Top categories</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a>Help center</a>
+        <a>Shipping</a>
+        <a>Returns</a>
+        <a>Track order</a>
+      </div>
+      <div>
+        <h4>Stay updated</h4>
+        <div class="newsletter">
+          <input placeholder="Email address" />
+          <button class="pill small">Join</button>
+        </div>
+        <p class="muted">Get weekly deals and drops.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">(c) 2026 NexBuy. All rights reserved.</div>
+  </footer>
+</ng-container>
+
+<div class="chatbot-shell" [class.open]="chatbotOpen">
+  <button type="button" class="chatbot-launcher" *ngIf="!chatbotOpen" (click)="toggleChatbot()">
+    <img src="assets/logo.svg" alt="NexBuy assistant" />
+    <div>
+      <strong>Ask NexBuy</strong>
+      <span>Help in English, Hindi, Marathi</span>
+    </div>
+  </button>
+
+  <section class="chatbot-panel" *ngIf="chatbotOpen">
+    <header class="chatbot-head">
+      <div class="chatbot-brand">
+        <img src="assets/logo.svg" alt="NexBuy assistant" />
+        <div>
+          <strong>{{ chatLanguage === 'hi' ? 'NexBuy assistant - Hindi' : chatLanguage === 'mr' ? 'NexBuy assistant - Marathi' : 'NexBuy assistant' }}</strong>
+          <span>{{ chatLanguage === 'hi' ? 'Shopping and order help in Hindi' : chatLanguage === 'mr' ? 'Shopping and order help in Marathi' : 'Shopping and order help' }}</span>
+        </div>
+      </div>
+
+      <div class="chatbot-head-actions">
+        <div class="language-row">
+          <button type="button" [class.active]="chatLanguage === 'en'" (click)="setChatLanguage('en')">EN</button>
+          <button type="button" [class.active]="chatLanguage === 'hi'" (click)="setChatLanguage('hi')">HI</button>
+          <button type="button" [class.active]="chatLanguage === 'mr'" (click)="setChatLanguage('mr')">MR</button>
+        </div>
+        <button type="button" class="material-icon icon-btn" (click)="closeChatbot()">close</button>
+      </div>
+    </header>
+
+    <div class="chatbot-thread">
+      <article class="chat-message" *ngFor="let message of chatMessages">
+        <div class="message-bubble" [class.user]="message.role === 'user'">
+          <p class="message-label">{{ message.role === 'user' ? 'You' : (message.headline || 'Assistant') }}</p>
+          <p>{{ message.text }}</p>
+          <p class="message-next" *ngIf="message.nextStep">{{ message.nextStep }}</p>
+        </div>
+
+        <div class="chat-order-row" *ngIf="message.orders?.length">
+          <a class="chat-order-chip" *ngFor="let order of message.orders" routerLink="/order" [queryParams]="{ highlight: order.orderNumber }">
+            <strong>{{ order.orderNumber }}</strong>
+              <span>{{ order.status }} | {{ order.paymentStatus }}</span>
+            <small>{{ formatShortDate(order.placedAt) }}</small>
+          </a>
+        </div>
+
+        <div class="chat-product-grid" *ngIf="message.products?.length">
+          <a class="chat-product" *ngFor="let product of message.products; trackBy: trackBySlug" [routerLink]="['/product', product.slug]">
+            <img [src]="product.coverImage || 'assets/logo.svg'" [alt]="product.title" />
+            <div>
+              <strong>{{ product.title }}</strong>
+              <span>{{ formatPrice(product.priceCents) }} | {{ product.stock.label }}</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="reply-row" *ngIf="message.quickReplies?.length">
+          <button type="button" class="reply-chip" *ngFor="let reply of message.quickReplies; trackBy: trackByText" (click)="sendChat(reply)">
+            {{ reply }}
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div class="chatbot-composer">
+      <textarea [(ngModel)]="chatInput" rows="3" [placeholder]="chatLanguage === 'hi' ? 'Ask about orders, deals, or products in Hindi...' : chatLanguage === 'mr' ? 'Ask about orders, deals, or products in Marathi...' : 'Ask about orders, deals, or products...'" (keydown.control.enter)="sendChat()"></textarea>
+      <div class="composer-meta">
+        <span>{{ chatLanguage === 'hi' ? 'Press Ctrl+Enter to send in Hindi' : chatLanguage === 'mr' ? 'Press Ctrl+Enter to send in Marathi' : 'Press Ctrl+Enter to send' }}</span>
+        <button type="button" class="pill small" (click)="sendChat()" [disabled]="chatBusy">
+          {{ chatBusy ? 'Thinking...' : 'Send' }}
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

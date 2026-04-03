@@ -1,0 +1,101 @@
+<section class="ai-shell" *ngIf="!recommendationsLoading && recommendations as data; else recommendationStateTpl">
+  <header class="intro">
+    <div class="intro-copy">
+      <p class="eyebrow">AI Recommendations</p>
+      <h1>{{ data.headline }}</h1>
+      <p class="lede">{{ data.summary }}</p>
+    </div>
+    <div class="intro-actions">
+      <button type="button" class="pill" (click)="loadRecommendations()">Refresh picks</button>
+      <button type="button" class="btn-ghost" (click)="openAssistant()">Open assistant</button>
+    </div>
+  </header>
+
+  <section class="overview-strip">
+    <article class="overview-tile spotlight">
+      <span>Recommendation mode</span>
+      <strong>{{ recommendationMode }}</strong>
+      <small>{{ data.personalized ? 'Built from your search, cart, and order activity.' : 'Built from live storefront demand and stock.' }}</small>
+    </article>
+    <article class="overview-tile">
+      <span>Products surfaced</span>
+      <strong>{{ recommendationCount }}</strong>
+      <small>Only live catalog items with real media, price, and stock.</small>
+    </article>
+    <article class="overview-tile">
+      <span>Signal sources</span>
+      <strong>{{ data.signals.length || 1 }}</strong>
+      <small>{{ data.signals.length ? 'Recent behavioral signals influenced this round.' : 'Using current storefront performance as the signal.' }}</small>
+    </article>
+  </section>
+
+  <section class="curation-grid">
+    <article class="story-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Why these products</p>
+          <h2>Signals behind this recommendation set.</h2>
+        </div>
+      </div>
+      <div class="signal-list" *ngIf="data.signals.length; else fallbackSignalsTpl">
+        <div class="signal-row" *ngFor="let signal of data.signals; trackBy: trackByText">
+          <span class="signal-dot"></span>
+          <p>{{ signal }}</p>
+        </div>
+      </div>
+      <ng-template #fallbackSignalsTpl>
+        <div class="signal-list">
+          <div class="signal-row">
+            <span class="signal-dot"></span>
+            <p>Live order flow, in-stock inventory, and current product freshness are driving this list.</p>
+          </div>
+        </div>
+      </ng-template>
+    </article>
+
+    <aside class="workflow-panel">
+      <p class="eyebrow">How NexBuy AI curates</p>
+      <div class="workflow-step">
+        <strong>01. Read activity</strong>
+        <p>Recent search terms, carts, orders, and product openings inform the direction.</p>
+      </div>
+      <div class="workflow-step">
+        <strong>02. Protect utility</strong>
+        <p>Only products with current pricing, media, and real stock survive the shortlist.</p>
+      </div>
+      <div class="workflow-step">
+        <strong>03. Keep it shoppable</strong>
+        <p>The result is a clean set of products you can open and buy right now.</p>
+      </div>
+    </aside>
+  </section>
+
+  <section class="recommendation-grid">
+    <a class="product-tile" *ngFor="let product of data.products; trackBy: trackBySlug" [routerLink]="['/product', product.slug]">
+      <div class="product-media">
+        <img [src]="product.coverImage || 'assets/logo.svg'" [alt]="product.title" />
+      </div>
+      <div class="product-copy">
+        <p class="product-meta">{{ product.categoryName }}<span *ngIf="product.brandName"> / {{ product.brandName }}</span></p>
+        <strong>{{ product.title }}</strong>
+        <p>{{ product.description || 'Open the detail page for the full product story, media, and offer.' }}</p>
+      </div>
+      <div class="product-foot">
+        <em>{{ formatPrice(product.priceCents) }}</em>
+        <span [class.out]="!product.stock.inStock">{{ product.stock.label }}</span>
+      </div>
+    </a>
+  </section>
+</section>
+
+<ng-template #recommendationStateTpl>
+  <section class="state-shell">
+    <p class="eyebrow">AI Recommendations</p>
+    <h2>{{ recommendationsLoading ? 'Building a fresh recommendation set...' : 'Could not load recommendations' }}</h2>
+    <p>{{ recommendationsLoading ? 'Reading live search, cart, order, and stock signals to shape the next set of picks.' : recommendationsError }}</p>
+    <div class="state-actions" *ngIf="!recommendationsLoading">
+      <button type="button" class="pill" (click)="loadRecommendations()">Try again</button>
+      <button type="button" class="btn-ghost" (click)="openAssistant()">Open assistant</button>
+    </div>
+  </section>
+</ng-template>

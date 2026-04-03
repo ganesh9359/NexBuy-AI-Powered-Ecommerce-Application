@@ -1,0 +1,91 @@
+.panel {
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 24px;
+  padding: 1.3rem;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.06);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.panel-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.panel-toolbar h4 {
+  margin: 0.3rem 0 0;
+  font-size: 1.45rem;
+}
+
+.panel-toolbar input {
+  min-width: 280px;
+  padding: 0.8rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  background: #fff;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.95rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+th {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.badge.role {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
+
+.badge.status {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.empty-state {
+  color: #475569;
+}
+
+@media (max-width: 840px) {
+  .panel-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .panel-toolbar input {
+    min-width: 100%;
+  }
+}

@@ -1,0 +1,275 @@
+.form-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 320px;
+  gap: 1rem;
+}
+
+.form-card,
+.preview-card {
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 24px;
+  padding: 1.3rem;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.06);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+h4 {
+  margin: 0.3rem 0 1rem;
+  font-size: 1.45rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+label span {
+  font-weight: 600;
+  color: #334155;
+}
+
+label.full,
+.brand-create,
+.gallery-panel {
+  grid-column: 1 / -1;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.8rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  background: #fff;
+}
+
+textarea {
+  resize: vertical;
+}
+
+small,
+code {
+  color: #64748b;
+}
+
+code {
+  font-size: 0.84em;
+}
+
+.upload-block {
+  padding: 1rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(124, 58, 237, 0.05));
+  border: 1px dashed rgba(37, 99, 235, 0.22);
+}
+
+.upload-block input[type='file'] {
+  padding: 0.7rem;
+  background: rgba(255,255,255,0.85);
+}
+
+.brand-create {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.gallery-panel {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.gallery-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.gallery-header div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.gallery-empty {
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  border-radius: 18px;
+  padding: 1rem;
+  color: #64748b;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.gallery-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.gallery-item {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  border-radius: 20px;
+  background: rgba(248, 250, 252, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.gallery-item img,
+.preview-card img,
+.preview-strip img {
+  object-fit: cover;
+}
+
+.gallery-item img {
+  width: 112px;
+  height: 112px;
+  border-radius: 18px;
+  background: #e2e8f0;
+}
+
+.gallery-fields {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.gallery-actions {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.actions button,
+.gallery-actions button,
+.brand-create button,
+.gallery-header button {
+  border: none;
+  padding: 0.85rem 1.1rem;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.small {
+  padding: 0.65rem 0.9rem !important;
+  font-size: 0.92rem;
+}
+
+.primary {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+}
+
+.secondary {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.ghost {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.preview-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
+  margin-top: 0.8rem;
+}
+
+.preview-card h5 {
+  margin: 1rem 0 0.3rem;
+  font-size: 1.2rem;
+}
+
+.preview-card p {
+  color: #64748b;
+}
+
+.preview-card strong {
+  color: #ea580c;
+  font-size: 1.25rem;
+}
+
+.preview-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 1rem 0 0.6rem;
+}
+
+.preview-strip img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: #e2e8f0;
+}
+
+.error {
+  margin-top: 0.8rem;
+  color: #b91c1c;
+}
+
+.notice {
+  margin-top: 0.8rem;
+  color: #15803d;
+}
+
+@media (max-width: 980px) {
+  .form-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .form-grid,
+  .brand-create,
+  .gallery-item {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 180px;
+  }
+
+  .gallery-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

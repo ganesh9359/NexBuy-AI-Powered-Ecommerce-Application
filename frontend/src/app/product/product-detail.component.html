@@ -1,0 +1,155 @@
+<section class="container detail-shell" *ngIf="!loading && detail?.product as product; else detailStateTpl">
+  <nav class="breadcrumbs">
+    <a routerLink="/product">Storefront</a>
+    <span>/</span>
+    <a [routerLink]="['/product/category', product.categorySlug]">{{ product.categoryName }}</a>
+    <span>/</span>
+    <span>{{ product.title }}</span>
+  </nav>
+
+  <section class="detail-top">
+    <section class="gallery-panel">
+      <div class="hero-media">
+        <img [src]="primaryImage(product)" [alt]="product.title" />
+      </div>
+
+      <div class="thumb-row" *ngIf="product.media.length > 1">
+        <button
+          type="button"
+          class="thumb"
+          *ngFor="let media of product.media"
+          [class.active]="media.url === selectedImage"
+          (click)="selectMedia(media)"
+        >
+          <img [src]="media.url" [alt]="media.altText || product.title" />
+        </button>
+      </div>
+    </section>
+
+    <aside class="purchase-panel">
+      <p class="eyebrow">{{ product.categoryName }}<span *ngIf="product.brandName"> / {{ product.brandName }}</span></p>
+      <h1>{{ product.title }}</h1>
+      <p class="description">{{ product.description || 'Live product details from the seeded catalog.' }}</p>
+
+      <div class="price-row">
+        <strong>{{ formatPrice(product.priceCents) }}</strong>
+        <span class="compare" *ngIf="product.compareAtCents">{{ formatPrice(product.compareAtCents) }}</span>
+        <span class="save-chip" *ngIf="discountPercent(product) > 0">Save {{ discountPercent(product) }}%</span>
+      </div>
+
+      <div class="stock-row">
+        <span class="stock-pill" [class.low]="product.stock.lowStock" [class.out]="!product.stock.inStock">
+          {{ product.stock.label }}
+        </span>
+        <span class="availability">{{ availabilityText(product) }}</span>
+      </div>
+
+      <div class="purchase-actions">
+        <button class="pill" type="button" (click)="buyNow(product)" [disabled]="!canPurchase(product) || actionBusy">{{ actionBusy ? 'Processing...' : 'Buy now' }}</button>
+        <button class="btn-ghost" type="button" (click)="addToCart(product)" [disabled]="!canPurchase(product) || actionBusy">Add to cart</button>
+      </div>
+
+      <p class="signin-hint" *ngIf="!isLoggedIn">Sign in is required before cart, checkout, and payment.</p>
+      <p class="cart-notice" *ngIf="cartNotice">{{ cartNotice }}</p>
+
+      <div class="meta-grid">
+        <div>
+          <span>Brand</span>
+          <strong>{{ product.brandName || 'Independent' }}</strong>
+        </div>
+        <div>
+          <span>Variant</span>
+          <strong>{{ product.variantName || 'Default variant' }}</strong>
+        </div>
+        <div>
+          <span>SKU</span>
+          <strong>{{ product.sku || 'N/A' }}</strong>
+        </div>
+        <div>
+          <span>Currency</span>
+          <strong>{{ product.currency || 'INR' }}</strong>
+        </div>
+      </div>
+
+      <div class="tag-row" *ngIf="product.tags.length">
+        <a class="tag-chip" *ngFor="let tag of product.tags" [routerLink]="['/product/search']" [queryParams]="{ q: tag }">
+          {{ tag }}
+        </a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="info-layout">
+    <article class="info-panel">
+      <p class="eyebrow">About this item</p>
+      <h2>Product details</h2>
+      <p>{{ product.description || 'This product is loaded from the seeded catalog and now carries real media, stock, price, brand, and tag data across the storefront.' }}</p>
+      <p>The page is now centered on the purchase decision: the gallery is easier to scan, the stock state is visible immediately, and the main actions sit right beside the price instead of below an oversized hero.</p>
+    </article>
+
+    <article class="info-panel fact-panel">
+      <p class="eyebrow">Buying info</p>
+      <h2>What shoppers can confirm fast</h2>
+      <div class="fact-list">
+        <div class="fact-card">
+          <span>Stock</span>
+          <strong>{{ product.stock.label }}</strong>
+          <small>{{ availabilityText(product) }}</small>
+        </div>
+        <div class="fact-card">
+          <span>Media</span>
+          <strong>{{ product.media.length || 1 }} image{{ (product.media.length || 1) === 1 ? '' : 's' }}</strong>
+          <small>Loaded directly from the product media records.</small>
+        </div>
+        <div class="fact-card">
+          <span>Brand</span>
+          <strong>{{ product.brandName || 'Independent' }}</strong>
+          <small>{{ product.categoryName || 'Catalog' }} collection</small>
+        </div>
+        <div class="fact-card">
+          <span>Tags</span>
+          <strong>{{ product.tags.length || 0 }} linked</strong>
+          <small>{{ product.tags.length ? product.tags[0] : 'No tags on this product yet.' }}</small>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="related-panel" *ngIf="detail?.relatedProducts?.length">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Related products</p>
+        <h2>Keep browsing the same category</h2>
+      </div>
+      <a class="btn-ghost" [routerLink]="['/product/category', product.categorySlug]">More in {{ product.categoryName }}</a>
+    </div>
+
+    <div class="related-grid">
+      <article class="related-card" *ngFor="let related of detail.relatedProducts">
+        <a class="image-wrap" [routerLink]="['/product', related.slug]">
+          <img [src]="related.coverImage || related.media?.[0]?.url || 'assets/logo.svg'" [alt]="related.title" />
+        </a>
+        <div class="related-copy">
+          <span class="meta-line">{{ related.brandName || related.categoryName }}</span>
+          <a class="title-link" [routerLink]="['/product', related.slug]">{{ related.title }}</a>
+        </div>
+        <div class="card-footer">
+          <strong>{{ formatPrice(related.priceCents) }}</strong>
+          <span class="stock-pill" [class.low]="related.stock.lowStock" [class.out]="!related.stock.inStock">
+            {{ related.stock.label }}
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+</section>
+
+<ng-template #detailStateTpl>
+  <section class="container state-shell">
+    <div class="state-card" *ngIf="loading">Loading product details...</div>
+    <div class="state-card error" *ngIf="!loading && error">
+      <p>{{ error }}</p>
+      <button class="pill" type="button" (click)="retry()">Try again</button>
+    </div>
+  </section>
+</ng-template>

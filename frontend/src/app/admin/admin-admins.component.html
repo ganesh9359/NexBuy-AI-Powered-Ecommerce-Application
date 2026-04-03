@@ -1,0 +1,45 @@
+<section class="admin-grid">
+  <article class="panel form-panel">
+    <p class="eyebrow">Admin access</p>
+    <h4>Add another admin</h4>
+    <p class="lede">Only signed-in admins can create new admin accounts for the control room.</p>
+    <label>
+      <span>Email</span>
+      <input [(ngModel)]="form.email" type="email" placeholder="admin@nexbuy.com" />
+    </label>
+    <label>
+      <span>Password</span>
+      <input [(ngModel)]="form.password" type="password" placeholder="Create a secure password" />
+    </label>
+    <label>
+      <span>Phone (optional)</span>
+      <input [(ngModel)]="form.phone" type="tel" placeholder="Phone number" />
+    </label>
+    <div class="error" *ngIf="error">{{ error }}</div>
+    <div class="success" *ngIf="success">{{ success }}</div>
+    <button type="button" (click)="createAdmin()" [disabled]="saving">{{ saving ? 'Creating...' : 'Add admin' }}</button>
+  </article>
+
+  <article class="panel list-panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Current admin accounts</p>
+        <h4>{{ admins.length }} admins</h4>
+      </div>
+    </div>
+
+    <div *ngIf="!loading; else loadingTpl" class="admin-list">
+      <div class="admin-row" *ngFor="let admin of admins">
+        <div>
+          <strong>{{ admin.email }}</strong>
+          <small>{{ admin.phone || 'No phone added' }}</small>
+        </div>
+        <span class="badge">{{ admin.status }}</span>
+      </div>
+    </div>
+  </article>
+</section>
+
+<ng-template #loadingTpl>
+  <p>Loading admin list...</p>
+</ng-template>

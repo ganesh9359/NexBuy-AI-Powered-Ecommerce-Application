@@ -1,0 +1,58 @@
+﻿.login-hero {
+  min-height: calc(100vh - 140px);
+  display: grid;
+  place-items: center;
+  position: relative;
+  padding: 2rem 1rem;
+  overflow: hidden;
+}
+.login-hero .glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(14,165,233,0.25), transparent 35%),
+              radial-gradient(circle at 80% 0%, rgba(124,58,237,0.25), transparent 30%),
+              linear-gradient(120deg, rgba(14,165,233,0.12), rgba(124,58,237,0.12));
+  filter: blur(0px);
+  z-index: 0;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  width: min(900px, 95vw);
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  box-shadow: var(--glow);
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+}
+.brand-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.brand-row img { width: 46px; height: 46px; border-radius: 12px; }
+.brand-row .title { font-size: 1.6rem; font-weight: 700; }
+.brand-row .muted { color: var(--muted); margin: 0; }
+
+.form { display: grid; gap: 0.6rem; }
+label { font-weight: 600; }
+input { width: 100%; padding: 0.7rem 0.8rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: var(--text); }
+button { width: 100%; }
+.error { color: #ef4444; font-size: 0.9rem; }
+
+.extras { display: grid; gap: 0.8rem; }
+.extras ul { margin: 0.2rem 0 0; padding-left: 1rem; color: var(--muted); }
+.switch { color: var(--muted); }
+
+.light-theme .card { background: #ffffff; border-color: rgba(15,23,42,0.08); box-shadow: 0 12px 30px rgba(15,23,42,0.08); }
+.light-theme input { background: #f8fafc; border-color: rgba(15,23,42,0.12); color: #0f172a; }
+.light-theme .login-hero .glow { background: radial-gradient(circle at 30% 20%, rgba(14,165,233,0.18), transparent 35%), radial-gradient(circle at 80% 0%, rgba(124,58,237,0.18), transparent 30%), linear-gradient(120deg, #eef2ff, #e0f2fe); }
+.form { gap: 0.75rem; }
+button { margin-top: 0.25rem; }
+.extras .switch { margin-top: 0.25rem; }

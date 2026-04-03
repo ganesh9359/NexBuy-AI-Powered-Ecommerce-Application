@@ -1,0 +1,149 @@
+<section class="form-shell" *ngIf="!loading; else loadingTpl">
+  <div class="form-card">
+    <p class="eyebrow">Catalog editor</p>
+    <h4>{{ isEditMode ? 'Update product' : 'Add a new product' }}</h4>
+
+    <div class="form-grid">
+      <label>
+        <span>Title</span>
+        <input [(ngModel)]="form.title" placeholder="Product title" />
+      </label>
+      <label>
+        <span>Category</span>
+        <select [(ngModel)]="form.categoryName">
+          <option value="">Select a storefront category</option>
+          <option *ngFor="let category of categoryOptions" [ngValue]="category">{{ category }}</option>
+        </select>
+      </label>
+      <label>
+        <span>Brand</span>
+        <select [(ngModel)]="form.brandName">
+          <option value="">No brand selected</option>
+          <option *ngFor="let brand of brandOptions" [ngValue]="brand">{{ brand }}</option>
+        </select>
+      </label>
+      <label>
+        <span>Slug</span>
+        <input [(ngModel)]="form.slug" placeholder="Auto-generated if blank" />
+      </label>
+      <div class="brand-create full">
+        <label>
+          <span>Create brand</span>
+          <input [(ngModel)]="newBrandName" placeholder="Add a new brand name" />
+        </label>
+        <button type="button" class="secondary" (click)="createBrand()" [disabled]="creatingBrand || !newBrandName.trim()">
+          {{ creatingBrand ? 'Creating...' : 'Create brand' }}
+        </button>
+      </div>
+      <label>
+        <span>SKU</span>
+        <input [(ngModel)]="form.sku" placeholder="Auto-generated if blank" />
+      </label>
+      <label>
+        <span>Variant name</span>
+        <input [(ngModel)]="form.variantName" placeholder="Default variant name" />
+      </label>
+      <label>
+        <span>Status</span>
+        <select [(ngModel)]="form.status">
+          <option *ngFor="let status of statuses" [ngValue]="status">{{ status }}</option>
+        </select>
+      </label>
+      <label>
+        <span>Price (cents)</span>
+        <input type="number" [(ngModel)]="form.priceCents" />
+      </label>
+      <label>
+        <span>Stock quantity</span>
+        <input type="number" [(ngModel)]="form.stockQty" />
+      </label>
+      <label class="full">
+        <span>Tags</span>
+        <input [(ngModel)]="tagsText" placeholder="Comma separated tags, for example gaming, rgb, headset" />
+        <small>Tags are saved into <code>product_tags</code> and normalized automatically.</small>
+      </label>
+      <label class="full upload-block">
+        <span>Cover image upload</span>
+        <input type="file" accept="image/*" (change)="onCoverImageSelected($event)" [disabled]="uploadingImage" />
+        <small>Upload the primary product image here. It will also be added to the gallery.</small>
+      </label>
+      <label class="full">
+        <span>Cover image URL</span>
+        <input [(ngModel)]="form.coverImage" placeholder="Auto-filled after upload, or paste an external image URL" />
+      </label>
+      <label class="full upload-block">
+        <span>Gallery image upload</span>
+        <input type="file" multiple accept="image/*" (change)="onGalleryImagesSelected($event)" [disabled]="uploadingGallery" />
+        <small>Upload multiple gallery images to populate <code>product_media</code>.</small>
+      </label>
+      <label class="full">
+        <span>Description</span>
+        <textarea [(ngModel)]="form.description" rows="5" placeholder="Describe the product"></textarea>
+      </label>
+    </div>
+
+    <div class="gallery-panel">
+      <div class="gallery-header">
+        <div>
+          <strong>Gallery images</strong>
+          <small>Manage the product image set and cover ordering.</small>
+        </div>
+        <button type="button" class="ghost small" (click)="addMediaRow()">Add image row</button>
+      </div>
+
+      <div class="gallery-empty" *ngIf="!galleryItems.length">
+        No gallery images yet. Upload files above or add image URLs manually.
+      </div>
+
+      <div class="gallery-list" *ngIf="galleryItems.length">
+        <article class="gallery-item" *ngFor="let item of galleryItems; let i = index">
+          <img [src]="item.url ? resolveImage(item.url) : 'assets/logo.svg'" [alt]="item.altText || form.title || 'Gallery image'" />
+          <div class="gallery-fields">
+            <label>
+              <span>Image URL</span>
+              <input [(ngModel)]="item.url" placeholder="https://... or uploaded URL" />
+            </label>
+            <label>
+              <span>Alt text</span>
+              <input [(ngModel)]="item.altText" placeholder="Optional description for the image" />
+            </label>
+          </div>
+          <div class="gallery-actions">
+            <button type="button" class="secondary small" (click)="setCoverFromMedia(item.url)" [disabled]="!item.url">Use as cover</button>
+            <button type="button" class="ghost small" (click)="moveMedia(i, -1)" [disabled]="i === 0">Up</button>
+            <button type="button" class="ghost small" (click)="moveMedia(i, 1)" [disabled]="i === galleryItems.length - 1">Down</button>
+            <button type="button" class="danger small" (click)="removeMedia(i)">Remove</button>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="notice" *ngIf="imageNotice">{{ imageNotice }}</div>
+    <div class="error" *ngIf="error">{{ error }}</div>
+
+    <div class="actions">
+      <button type="button" class="ghost" routerLink="/admin/products">Cancel</button>
+      <button type="button" class="primary" (click)="save()" [disabled]="saving || isUploading">
+        {{ saving ? 'Saving...' : (isEditMode ? 'Update product' : 'Create product') }}
+      </button>
+    </div>
+  </div>
+
+  <aside class="preview-card">
+    <p class="eyebrow">Live preview</p>
+    <img [src]="previewImage" [alt]="form.title || 'Preview'" />
+    <h5>{{ form.title || 'Your product title' }}</h5>
+    <p>{{ form.categoryName || 'Select category' }}<span *ngIf="form.brandName"> • {{ form.brandName }}</span></p>
+    <strong>{{ form.priceCents / 100 | currency:'INR':'symbol':'1.2-2' }}</strong>
+    <small *ngIf="isUploading">Uploading media...</small>
+    <small *ngIf="tagsText.trim()">Tags: {{ tagsText }}</small>
+    <div class="preview-strip" *ngIf="galleryItems.length">
+      <img *ngFor="let item of galleryItems | slice:0:4" [src]="item.url ? resolveImage(item.url) : 'assets/logo.svg'" [alt]="item.altText || form.title || 'Gallery image'" />
+    </div>
+    <small *ngIf="galleryItems.length">{{ galleryItems.length }} image{{ galleryItems.length > 1 ? 's' : '' }} in gallery</small>
+  </aside>
+</section>
+
+<ng-template #loadingTpl>
+  <section class="form-card">Loading product...</section>
+</ng-template>

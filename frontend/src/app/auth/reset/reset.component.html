@@ -1,0 +1,19 @@
+﻿<section class="auth-card">
+  <h2>Reset password</h2>
+  <p class="muted">Enter your email, the OTP you received, and your new password.</p>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    <label>Email</label>
+    <input type="email" formControlName="email" placeholder="you@example.com" />
+
+    <label>OTP</label>
+    <input type="text" formControlName="otp" placeholder="6-digit code" />
+
+    <label>New password</label>
+    <input type="password" formControlName="newPassword" placeholder="New password" />
+
+    <button class="pill" type="submit" [disabled]="loading">{{ loading ? 'Resetting...' : 'Reset password' }}</button>
+  </form>
+  <div class="success" *ngIf="success">{{ success }}</div>
+  <div class="error" *ngIf="error">{{ error }}</div>
+  <div class="muted small">Need an OTP? <a routerLink="/auth/forgot">Request one</a></div>
+</section>

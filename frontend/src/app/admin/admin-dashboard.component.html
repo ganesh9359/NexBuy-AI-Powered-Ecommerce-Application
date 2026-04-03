@@ -1,0 +1,81 @@
+<section class="dashboard" *ngIf="dashboard as data; else loadingTpl">
+  <div class="stats-grid">
+    <button class="stat-card cyan dashboard-action" type="button" (click)="openUsers()">
+      <p>Total Users</p>
+      <h3>{{ data.totalUsers }}</h3>
+      <span>Open user accounts</span>
+    </button>
+    <button class="stat-card blue dashboard-action" type="button" (click)="openProducts()">
+      <p>Total Products</p>
+      <h3>{{ data.totalProducts }}</h3>
+      <span>Open product catalog</span>
+    </button>
+    <button class="stat-card amber dashboard-action" type="button" (click)="openOrders()">
+      <p>Total Orders</p>
+      <h3>{{ data.totalOrders }}</h3>
+      <span>Open all orders</span>
+    </button>
+    <button class="stat-card green dashboard-action" type="button" (click)="openOrders('delivered')">
+      <p>Delivered</p>
+      <h3>{{ data.deliveredOrders }}</h3>
+      <span>{{ data.newOrders }} new orders pending attention</span>
+    </button>
+  </div>
+
+  <div class="dashboard-grid">
+    <article class="panel chart-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Order pipeline</p>
+          <h4>Orders by status</h4>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <button class="donut donut-button" type="button" [style.background]="chartBackground" (click)="openOrders()">
+          <div class="donut-hole">
+            <strong>{{ data.totalOrders }}</strong>
+            <span>Total orders</span>
+          </div>
+        </button>
+        <div class="legend">
+          <button class="legend-row" type="button" *ngFor="let item of statusLegend" (click)="openStatus(item)" [disabled]="!item.value">
+            <span class="swatch" [style.background]="item.color"></span>
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel insight-panel">
+      <p class="eyebrow">Admin focus</p>
+      <h4>What deserves attention right now</h4>
+      <ul>
+        <li>Monitor new orders and move them quickly into shipped status.</li>
+        <li>Review user growth and keep admin-created accounts limited and deliberate.</li>
+        <li>Use forecasting to protect fast-moving categories before stock runs short.</li>
+      </ul>
+      <div class="focus-strip">
+        <button type="button" class="focus-tile" (click)="openOrders('pending')">
+          <span>New orders</span>
+          <strong>{{ data.newOrders }}</strong>
+        </button>
+        <button type="button" class="focus-tile" (click)="openOrders('delivered')">
+          <span>Delivered</span>
+          <strong>{{ data.deliveredOrders }}</strong>
+        </button>
+        <button type="button" class="focus-tile" (click)="openForecast()">
+          <span>Forecast</span>
+          <strong>7-day</strong>
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<ng-template #loadingTpl>
+  <section class="panel loading-state">
+    <p class="eyebrow">Loading</p>
+    <h4>Fetching admin dashboard data...</h4>
+  </section>
+</ng-template>

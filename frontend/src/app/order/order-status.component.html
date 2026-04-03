@@ -1,0 +1,82 @@
+<section class="container status-shell">
+  <div class="state-card error" *ngIf="error">{{ error }}</div>
+  <div class="state-card" *ngIf="loading">Loading order status...</div>
+
+  <ng-container *ngIf="!loading && order as currentOrder">
+    <section class="status-hero" [class.failure]="mode === 'failure'">
+      <div class="status-visual" [class.is-failure]="mode === 'failure'">
+        <div class="pulse-ring ring-one" *ngIf="mode === 'success'"></div>
+        <div class="pulse-ring ring-two" *ngIf="mode === 'success'"></div>
+        <div class="spark spark-one" *ngIf="mode === 'success'"></div>
+        <div class="spark spark-two" *ngIf="mode === 'success'"></div>
+        <div class="spark spark-three" *ngIf="mode === 'success'"></div>
+        <div class="spark spark-four" *ngIf="mode === 'success'"></div>
+        <div class="spark spark-five" *ngIf="mode === 'success'"></div>
+        <div class="spark spark-six" *ngIf="mode === 'success'"></div>
+        <div class="core-symbol">
+          <span *ngIf="mode === 'success'">✓</span>
+          <span *ngIf="mode === 'failure'">!</span>
+        </div>
+      </div>
+
+      <div class="status-copy">
+        <p class="eyebrow">{{ mode === 'success' ? 'Order placed' : 'Payment failed' }}</p>
+        <h1>{{ headline }}</h1>
+        <p>{{ supportCopy }}</p>
+
+        <div class="status-pills">
+          <span>{{ currentOrder.summary.orderNumber }}</span>
+          <span>{{ currentOrder.summary.status }}</span>
+          <strong>{{ formatPrice(currentOrder.summary.totalCents) }}</strong>
+        </div>
+
+        <div class="hero-actions">
+          <a class="pill" [routerLink]="['/order', currentOrder.summary.orderNumber]">Open order detail</a>
+          <a class="btn-ghost" *ngIf="mode === 'failure'" [routerLink]="['/payment', currentOrder.summary.orderNumber]">Retry payment</a>
+          <a class="btn-ghost" *ngIf="mode === 'success'" routerLink="/order">View all orders</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="status-grid">
+      <section class="status-panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">What happens next</p>
+            <h2>{{ mode === 'success' ? 'Your order is now moving through the live flow.' : 'You can recover this order in a few steps.' }}</h2>
+          </div>
+        </div>
+
+        <div class="step-list">
+          <article class="step-row" *ngFor="let step of steps; let index = index">
+            <span class="step-index">0{{ index + 1 }}</span>
+            <div class="step-copy">
+              <strong>{{ step.title }}</strong>
+              <p>{{ step.detail }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="status-panel info-panel">
+        <p class="eyebrow">Order snapshot</p>
+        <div class="info-row">
+          <span>Placed</span>
+          <strong>{{ formatDate(currentOrder.summary.placedAt) }}</strong>
+        </div>
+        <div class="info-row">
+          <span>Items</span>
+          <strong>{{ currentOrder.summary.itemCount }}</strong>
+        </div>
+        <div class="info-row" *ngIf="currentOrder.payment?.checkoutLabel">
+          <span>Payment route</span>
+          <strong>{{ currentOrder.payment?.checkoutLabel }}</strong>
+        </div>
+        <div class="info-row">
+          <span>Ship to</span>
+          <strong>{{ currentOrder.shippingAddress }}</strong>
+        </div>
+      </aside>
+    </div>
+  </ng-container>
+</section>
