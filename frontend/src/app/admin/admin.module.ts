@@ -10,6 +10,7 @@ import { AdminProductsComponent } from './admin-products.component';
 import { AdminProductFormComponent } from './admin-product-form.component';
 import { AdminAdminsComponent } from './admin-admins.component';
 import { AdminForecastComponent } from './admin-forecast.component';
+import { AdminReturnsComponent } from './admin-returns.component';
 
 const routes: Routes = [
   {
@@ -24,7 +25,8 @@ const routes: Routes = [
       { path: 'products', component: AdminProductsComponent, data: { title: 'Manage Products' } },
       { path: 'products/new', component: AdminProductFormComponent, data: { title: 'Add Product' } },
       { path: 'products/:id/edit', component: AdminProductFormComponent, data: { title: 'Edit Product' } },
-      { path: 'admins', component: AdminAdminsComponent, data: { title: 'Add Admin' } }
+      { path: 'admins', component: AdminAdminsComponent, data: { title: 'Add Admin' } },
+      { path: 'returns', component: AdminReturnsComponent, data: { title: 'Return Requests' } }
     ]
   }
 ];
@@ -38,7 +40,8 @@ const routes: Routes = [
     AdminOrdersComponent,
     AdminProductsComponent,
     AdminProductFormComponent,
-    AdminAdminsComponent
+    AdminAdminsComponent,
+    AdminReturnsComponent
   ],
   imports: [CommonModule, FormsModule, RouterModule.forChild(routes)]
 })

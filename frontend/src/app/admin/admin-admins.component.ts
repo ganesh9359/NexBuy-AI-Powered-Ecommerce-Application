@@ -15,7 +15,8 @@ export class AdminAdminsComponent implements OnInit {
   form = {
     email: '',
     password: '',
-    phone: ''
+    phone: '',
+    confirmPassword: ''
   };
 
   constructor(private adminApi: AdminApiService) {}
@@ -35,7 +36,7 @@ export class AdminAdminsComponent implements OnInit {
     this.adminApi.createAdmin(this.form).subscribe({
       next: (admin) => {
         this.admins = [admin, ...this.admins];
-        this.form = { email: '', password: '', phone: '' };
+        this.form = { email: '', password: '', phone: '', confirmPassword: '' };
         this.success = 'New admin added successfully.';
         this.saving = false;
       },

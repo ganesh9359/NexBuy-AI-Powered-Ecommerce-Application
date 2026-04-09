@@ -1,1 +1,1 @@
-package com.nexbuy.modules.auth.security;public class JwtFilter {}
+package com.nexbuy.modules.auth.security;

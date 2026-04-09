@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
         boolean billingSameAsShipping = request == null || request.billingSameAsShipping() == null || request.billingSameAsShipping();
         CommerceSupport.AddressRecord billingAddress = billingSameAsShipping
                 ? shippingAddress
-                : commerceSupport.requireAddress(userId, request.billingAddressId());
+                : commerceSupport.requireAddress(userId, request == null ? null : request.billingAddressId());
 
         String provider = normalizeProvider(request == null ? null : request.paymentProvider());
         String orderNumber = commerceSupport.generateOrderNumber();

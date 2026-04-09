@@ -40,7 +40,7 @@ export class AdminShellComponent implements OnInit {
   }
 
   get adminEmail(): string {
-    return localStorage.getItem('userEmail') || 'admin@nexbuy.com';
+    return sessionStorage.getItem('userEmail') || 'admin@nexbuy.com';
   }
 
   toggleSidebar(): void {

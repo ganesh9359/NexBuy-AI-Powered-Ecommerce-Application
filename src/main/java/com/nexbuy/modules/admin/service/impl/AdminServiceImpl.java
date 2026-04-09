@@ -15,7 +15,10 @@ import com.nexbuy.modules.admin.dto.AdminProductMediaDto;
 import com.nexbuy.modules.admin.dto.AdminProductRequest;
 import com.nexbuy.modules.admin.dto.AdminProductStockRequest;
 import com.nexbuy.modules.admin.dto.AdminReturnReviewRequest;
+import com.nexbuy.modules.admin.dto.AdminReturnUpdateRequest;
 import com.nexbuy.modules.admin.dto.AdminUserDto;
+import com.nexbuy.modules.admin.dto.RefundStatusDto;
+import com.nexbuy.modules.admin.dto.ReturnRequestDto;
 import com.nexbuy.modules.admin.service.AdminService;
 import com.nexbuy.modules.auth.entity.User;
 import com.nexbuy.modules.auth.repository.UserRepository;
@@ -805,8 +808,8 @@ public class AdminServiceImpl implements AdminService {
 
         jdbcTemplate.query(
                 "select product_id, tag from product_tags where product_id in (" + placeholders(productIds.size()) + ") order by product_id asc, tag asc",
-                productIds.toArray(),
-                (RowCallbackHandler) rs -> tagsByProductId.computeIfAbsent(rs.getLong("product_id"), ignored -> new ArrayList<>()).add(rs.getString("tag"))
+                (RowCallbackHandler) rs -> tagsByProductId.computeIfAbsent(rs.getLong("product_id"), ignored -> new ArrayList<>()).add(rs.getString("tag")),
+                productIds.toArray()
         );
         return tagsByProductId;
     }
@@ -819,8 +822,8 @@ public class AdminServiceImpl implements AdminService {
 
         jdbcTemplate.query(
                 "select id, product_id, url, alt_text, sort_order from product_media where product_id in (" + placeholders(productIds.size()) + ") order by product_id asc, sort_order asc, id asc",
-                productIds.toArray(),
-                (RowCallbackHandler) rs -> mediaByProductId.computeIfAbsent(rs.getLong("product_id"), ignored -> new ArrayList<>()).add(productMediaRowMapper.mapRow(rs, 0))
+                (RowCallbackHandler) rs -> mediaByProductId.computeIfAbsent(rs.getLong("product_id"), ignored -> new ArrayList<>()).add(productMediaRowMapper.mapRow(rs, 0)),
+                productIds.toArray()
         );
         return mediaByProductId;
     }
@@ -1191,6 +1194,142 @@ public class AdminServiceImpl implements AdminService {
                                  String returnStatus,
                                  String refundStatus,
                                  String refundMailStatus) {
+    }
+
+    @Override
+    public List<ReturnRequestDto> getReturnRequests() {
+        String sql = "SELECT rr.id, rr.order_id, o.user_id, o.order_number, rr.status, rr.refund_status, " +
+                     "rr.reason, (o.total_cents / 100.0) as refund_amount_inr, rr.requested_at, rr.reviewed_at, " +
+                     "rr.picked_at, rr.updated_at " +
+                     "FROM return_requests rr " +
+                     "JOIN orders o ON rr.order_id = o.id " +
+                     "ORDER BY rr.requested_at DESC";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                new ReturnRequestDto(
+                        rs.getLong("id"),
+                        rs.getLong("order_id"),
+                        rs.getLong("user_id"),
+                        rs.getString("order_number"),
+                        rs.getString("status"),
+                        rs.getString("refund_status"),
+                        rs.getString("reason"),
+                        rs.getDouble("refund_amount_inr"),
+                        rs.getTimestamp("requested_at").toLocalDateTime(),
+                        rs.getTimestamp("reviewed_at") != null ? rs.getTimestamp("reviewed_at").toLocalDateTime() : null,
+                        rs.getTimestamp("picked_at") != null ? rs.getTimestamp("picked_at").toLocalDateTime() : null,
+                        rs.getTimestamp("updated_at").toLocalDateTime()
+                )
+        );
+    }
+
+    @Override
+    public ReturnRequestDto getReturnRequest(Long returnRequestId) {
+        String sql = "SELECT rr.id, rr.order_id, o.user_id, o.order_number, rr.status, rr.refund_status, " +
+                     "rr.reason, (o.total_cents / 100.0) as refund_amount_inr, rr.requested_at, rr.reviewed_at, " +
+                     "rr.picked_at, rr.updated_at " +
+                     "FROM return_requests rr " +
+                     "JOIN orders o ON rr.order_id = o.id " +
+                     "WHERE rr.id = ?";
+
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) ->
+                    new ReturnRequestDto(
+                            rs.getLong("id"),
+                            rs.getLong("order_id"),
+                            rs.getLong("user_id"),
+                            rs.getString("order_number"),
+                            rs.getString("status"),
+                            rs.getString("refund_status"),
+                            rs.getString("reason"),
+                            rs.getDouble("refund_amount_inr"),
+                            rs.getTimestamp("requested_at").toLocalDateTime(),
+                            rs.getTimestamp("reviewed_at") != null ? rs.getTimestamp("reviewed_at").toLocalDateTime() : null,
+                            rs.getTimestamp("picked_at") != null ? rs.getTimestamp("picked_at").toLocalDateTime() : null,
+                            rs.getTimestamp("updated_at").toLocalDateTime()
+                    ), returnRequestId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new CustomException("Return request not found", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Override
+    @Transactional
+    public ReturnRequestDto updateReturnRequest(Long returnRequestId, AdminReturnUpdateRequest request) {
+        String selectSql = "SELECT order_id FROM return_requests WHERE id = ?";
+        Long orderId;
+        try {
+            orderId = jdbcTemplate.queryForObject(selectSql, Long.class, returnRequestId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new CustomException("Return request not found", HttpStatus.NOT_FOUND);
+        }
+
+        String action = request.getAction().toLowerCase();
+        
+        if (action.equals("approve")) {
+            // Approve return - initiate refund
+            jdbcTemplate.update(
+                    "UPDATE return_requests SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    returnRequestId
+            );
+
+            // Get order details to start refund
+            String orderSql = "SELECT id, user_id FROM orders WHERE id = ?";
+            Map<String, Object> orderData = jdbcTemplate.queryForMap(orderSql, orderId);
+
+        } else if (action.equals("accept")) {
+            // Mark as accepted (pickup confirmed)
+            jdbcTemplate.update(
+                    "UPDATE return_requests SET status = 'accepted', picked_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    returnRequestId
+            );
+        } else if (action.equals("reject")) {
+            // Reject the return request
+            jdbcTemplate.update(
+                    "UPDATE return_requests SET status = 'rejected', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    returnRequestId
+            );
+        } else if (action.equals("complete")) {
+            // Mark return as completed
+            jdbcTemplate.update(
+                    "UPDATE return_requests SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    returnRequestId
+            );
+        } else if (action.equals("cancel")) {
+            // Cancel the return process
+            jdbcTemplate.update(
+                    "UPDATE return_requests SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    returnRequestId
+            );
+        }
+
+        return getReturnRequest(returnRequestId);
+    }
+
+    @Override
+    public RefundStatusDto getRefundStatus(Long orderId) {
+        String sql = "SELECT id, order_id, payment_id, amount_cents, currency, status, provider_refund_id, note, " +
+                     "requested_at, processed_at, updated_at " +
+                     "FROM refunds WHERE order_id = ? ORDER BY requested_at DESC LIMIT 1";
+        
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) ->
+                    new RefundStatusDto(
+                            rs.getLong("id"),
+                            rs.getLong("order_id"),
+                            rs.getLong("payment_id"),
+                            rs.getInt("amount_cents"),
+                            rs.getString("currency"),
+                            rs.getString("status"),
+                            rs.getString("provider_refund_id"),
+                            rs.getString("note"),
+                            rs.getTimestamp("requested_at").toLocalDateTime(),
+                            rs.getTimestamp("processed_at") != null ? rs.getTimestamp("processed_at").toLocalDateTime() : null,
+                            rs.getTimestamp("updated_at").toLocalDateTime()
+                    ), orderId);
+        } catch (EmptyResultDataAccessException e) {
+            return null; // No refund found
+        }
     }
 }
 

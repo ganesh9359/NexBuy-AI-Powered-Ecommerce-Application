@@ -108,16 +108,43 @@ public class AppConfig {
                 CREATE TABLE IF NOT EXISTS return_requests (
                   id BIGINT PRIMARY KEY AUTO_INCREMENT,
                   order_id BIGINT NOT NULL,
-                  status ENUM('requested','approved','rejected','received','refunded') NOT NULL DEFAULT 'requested',
-                  refund_status ENUM('not_started','pending','processed','failed') NOT NULL DEFAULT 'not_started',
-                  reason VARCHAR(255) NULL,
+                  status ENUM('requested','approved','accepted','rejected','completed','cancelled','received','refunded') NOT NULL DEFAULT 'requested',
+                  refund_status ENUM('not_started','pending','processing','processed','failed','cancelled') NOT NULL DEFAULT 'not_started',
+                  reason TEXT NULL,
                   requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                   reviewed_at DATETIME NULL,
+                  picked_at DATETIME NULL,
                   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                   CONSTRAINT uk_return_order UNIQUE (order_id),
                   CONSTRAINT fk_return_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB
                 """);
+
+        ensureEnumValues(
+                jdbcTemplate,
+                "return_requests",
+                "status",
+                "ALTER TABLE return_requests MODIFY COLUMN status ENUM('requested','approved','accepted','rejected','completed','cancelled','received','refunded') NOT NULL DEFAULT 'requested'",
+                "accepted",
+                "completed",
+                "cancelled",
+                "received",
+                "refunded"
+        );
+        ensureEnumValues(
+                jdbcTemplate,
+                "return_requests",
+                "refund_status",
+                "ALTER TABLE return_requests MODIFY COLUMN refund_status ENUM('not_started','pending','processing','processed','failed','cancelled') NOT NULL DEFAULT 'not_started'",
+                "processing",
+                "cancelled"
+        );
+        ensureColumnExists(
+                jdbcTemplate,
+                "return_requests",
+                "picked_at",
+                "ALTER TABLE return_requests ADD COLUMN picked_at DATETIME NULL AFTER reviewed_at"
+        );
     }
 
     private void ensureEnumValue(JdbcTemplate jdbcTemplate,
@@ -125,7 +152,44 @@ public class AppConfig {
                                  String columnName,
                                  String requiredValue,
                                  String alterSql) {
-        String columnType = jdbcTemplate.query(
+        String columnType = lookupColumnType(jdbcTemplate, tableName, columnName);
+        if (columnType == null || columnType.contains("'" + requiredValue + "'")) {
+            return;
+        }
+        jdbcTemplate.execute(alterSql);
+    }
+
+    private void ensureEnumValues(JdbcTemplate jdbcTemplate,
+                                  String tableName,
+                                  String columnName,
+                                  String alterSql,
+                                  String... requiredValues) {
+        String columnType = lookupColumnType(jdbcTemplate, tableName, columnName);
+        if (columnType == null) {
+            return;
+        }
+        for (String requiredValue : requiredValues) {
+            if (!columnType.contains("'" + requiredValue + "'")) {
+                jdbcTemplate.execute(alterSql);
+                return;
+            }
+        }
+    }
+
+    private void ensureColumnExists(JdbcTemplate jdbcTemplate,
+                                    String tableName,
+                                    String columnName,
+                                    String alterSql) {
+        if (lookupColumnType(jdbcTemplate, tableName, columnName) != null) {
+            return;
+        }
+        jdbcTemplate.execute(alterSql);
+    }
+
+    private String lookupColumnType(JdbcTemplate jdbcTemplate,
+                                    String tableName,
+                                    String columnName) {
+        return jdbcTemplate.query(
                 """
                         select column_type
                         from information_schema.columns
@@ -138,9 +202,5 @@ public class AppConfig {
                 tableName,
                 columnName
         );
-        if (columnType == null || columnType.contains("'" + requiredValue + "'")) {
-            return;
-        }
-        jdbcTemplate.execute(alterSql);
     }
 }

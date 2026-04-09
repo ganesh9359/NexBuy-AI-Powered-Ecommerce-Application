@@ -12,6 +12,35 @@
   <div class="state-card" *ngIf="loading">Loading your cart...</div>
 
   <ng-container *ngIf="!loading && cart as activeCart">
+    <!-- FREE SHIPPING INFO SECTION -->
+    <div class="free-shipping-section" *ngIf="activeCart.totals.freeShippingInfo as freeShipInfo">
+      <div class="free-shipping-card" [class.unlocked]="freeShipInfo.isEligible">
+        <div class="shipping-header">
+          <span class="shipping-icon">🚚</span>
+          <h3>Free Shipping</h3>
+          <span class="unlock-badge" *ngIf="freeShipInfo.isEligible" [@animateUnlock]>🎉 UNLOCKED!</span>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>{{ freeShipInfo.formattedCurrentTotal }}</span>
+            <span>{{ freeShipInfo.formattedThreshold }}</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" [style.width.%]="freeShipInfo.progressPercentage" [@progressAnimation]></div>
+          </div>
+        </div>
+
+        <div class="shipping-message" *ngIf="!freeShipInfo.isEligible">
+          <p>Add <strong>{{ freeShipInfo.formattedAmountNeeded }}</strong> more to unlock free shipping!</p>
+        </div>
+
+        <div class="shipping-message success" *ngIf="freeShipInfo.isEligible">
+          <p>🎊 Congratulations! You've unlocked free shipping on this order!</p>
+        </div>
+      </div>
+    </div>
+
     <ng-container *ngIf="activeCart.items.length; else emptyCartTpl">
       <div class="cart-layout">
         <section class="cart-list">

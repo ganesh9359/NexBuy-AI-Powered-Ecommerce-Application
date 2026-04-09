@@ -17,7 +17,8 @@ public class CartItemDto {
                              int shippingCents,
                              int discountCents,
                              int totalCents,
-                             String currency) {
+                             String currency,
+                             FreeShippingInfoDto freeShippingInfo) {
     }
 
     public record CartLine(Long itemId,

@@ -1,11 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CartLineItem, CartResponse, CartService } from './cart.service';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-cart-home',
   templateUrl: './cart-home.component.html',
-  styleUrls: ['./cart-home.component.scss']
+  styleUrls: ['./cart-home.component.scss'],
+  animations: [
+    trigger('animateUnlock', [
+      transition(':enter', [
+        style({ opacity: 0, scale: 0.8 }),
+        animate('600ms cubic-bezier(0.34, 1.56, 0.64, 1)', style({ opacity: 1, scale: 1 }))
+      ])
+    ]),
+    trigger('progressAnimation', [
+      transition(':enter', [
+        style({ width: '0%' }),
+        animate('1200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)', style({ width: '*' }))
+      ])
+    ])
+  ]
 })
 export class CartHomeComponent implements OnInit {
   cart?: CartResponse;

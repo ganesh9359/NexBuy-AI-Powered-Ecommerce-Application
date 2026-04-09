@@ -259,3 +259,186 @@
   background: #ffffff;
   border: 1px solid rgba(148, 163, 184, 0.16);
 }
+
+// ============= FREE SHIPPING SECTION =============
+
+.free-shipping-section {
+  margin-bottom: 1rem;
+}
+
+.free-shipping-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 34px rgba(102, 126, 234, 0.4);
+  color: white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  &.unlocked {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    box-shadow: 0 12px 34px rgba(132, 250, 176, 0.4);
+  }
+}
+
+.shipping-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .shipping-icon {
+    font-size: 1.5rem;
+  }
+
+  .unlock-badge {
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+}
+
+.progress-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.progress-bar-container {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #fff176 0%, #ffeb3b 50%, #fff59d 100%);
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  transition: width 0.3s ease;
+}
+
+.shipping-message {
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+
+  strong {
+    font-weight: 600;
+  }
+
+  &.success {
+    background: rgba(255, 255, 255, 0.15);
+    font-weight: 500;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes unlock-animation {
+  0% {
+    transform: scale(0.8) rotate(-10deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Light theme support
+.light-theme {
+  .free-shipping-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+
+    &.unlocked {
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    }
+  }
+
+  .unlock-badge {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .progress-bar-container {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+// Responsive
+@media (max-width: 640px) {
+  .free-shipping-card {
+    padding: 1.25rem;
+  }
+
+  .shipping-header {
+    h3 {
+      font-size: 1.1rem;
+    }
+
+    .unlock-badge {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  .progress-label {
+    font-size: 0.8rem;
+  }
+
+  .shipping-message {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+}

@@ -270,7 +270,7 @@ export class OrderDetailComponent implements OnInit {
     });
   }
 
-  private normalize(value?: string): string {
+  normalize(value?: string): string {
     return (value || '').trim().toLowerCase();
   }
 

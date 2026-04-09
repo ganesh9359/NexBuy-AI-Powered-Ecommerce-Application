@@ -88,11 +88,11 @@ export class AuthService {
   }
 
   get userRole(): string | null {
-    return localStorage.getItem('userRole');
+    return sessionStorage.getItem('userRole');
   }
 
   get token(): string | null {
-    return this.isLoggedIn() ? localStorage.getItem('token') : null;
+    return this.isLoggedIn() ? sessionStorage.getItem('token') : null;
   }
 
   rememberReturnUrl(url: string): void {
@@ -137,32 +137,33 @@ export class AuthService {
 
   private storeAuth(res: AuthResponse): void {
     if (res.token) {
-      localStorage.setItem('token', res.token);
+      // Use sessionStorage for sensitive tokens to avoid XSS persistence
+      sessionStorage.setItem('token', res.token);
       if (res.refreshToken) {
-        localStorage.setItem('refreshToken', res.refreshToken);
+        sessionStorage.setItem('refreshToken', res.refreshToken);
       }
-      localStorage.setItem('userEmail', res.email);
+      sessionStorage.setItem('userEmail', res.email);
       if (res.role) {
-        localStorage.setItem('userRole', res.role.toUpperCase());
+        sessionStorage.setItem('userRole', res.role.toUpperCase());
       }
       this.authStateSubject.next(true);
     }
   }
 
   private clearStoredAuth(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userRole');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('userEmail');
+    sessionStorage.removeItem('userRole');
     this.authStateSubject.next(false);
   }
 
   private hasStoredToken(): boolean {
-    return !!localStorage.getItem('token');
+    return !!sessionStorage.getItem('token');
   }
 
   private hasValidStoredToken(): boolean {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       return false;
     }

@@ -247,10 +247,10 @@ public class ProductServiceImpl implements ProductService {
 
         String sql = selectClause() + baseFromClause() + " where p.id in (" + placeholders(ids.size()) + ")";
         Map<Long, ProductSnapshot> snapshotsById = new LinkedHashMap<>();
-        jdbcTemplate.query(sql, ids.toArray(), rs -> {
+        jdbcTemplate.query(sql, rs -> {
             ProductSnapshot snapshot = mapSnapshot(rs);
             snapshotsById.put(snapshot.id, snapshot);
-        });
+        }, ids.toArray());
 
         List<ProductSnapshot> hydratedSnapshots = new ArrayList<>(snapshotsById.values());
         hydrateRelationships(hydratedSnapshots);
@@ -339,9 +339,9 @@ public class ProductServiceImpl implements ProductService {
         }
 
         String sql = "select product_id, tag from product_tags where product_id in (" + placeholders(productIds.size()) + ") order by product_id asc, tag asc";
-        jdbcTemplate.query(sql, productIds.toArray(), (RowCallbackHandler) rs -> tagsByProductId
+        jdbcTemplate.query(sql, (RowCallbackHandler) rs -> tagsByProductId
                 .computeIfAbsent(rs.getLong("product_id"), ignored -> new ArrayList<>())
-                .add(rs.getString("tag")));
+                .add(rs.getString("tag")), productIds.toArray());
         return tagsByProductId;
     }
 
@@ -358,14 +358,14 @@ public class ProductServiceImpl implements ProductService {
                 order by product_id asc, sort_order asc, id asc
                 """.formatted(placeholders(productIds.size()));
 
-        jdbcTemplate.query(sql, productIds.toArray(), (RowCallbackHandler) rs -> mediaByProductId
+        jdbcTemplate.query(sql, (RowCallbackHandler) rs -> mediaByProductId
                 .computeIfAbsent(rs.getLong("product_id"), ignored -> new ArrayList<>())
                 .add(new ProductDto.Media(
                         rs.getLong("id"),
                         rs.getString("url"),
                         rs.getString("alt_text"),
                         rs.getInt("sort_order")
-                )));
+                )), productIds.toArray());
         return mediaByProductId;
     }
 
@@ -383,12 +383,12 @@ public class ProductServiceImpl implements ProductService {
                  limit 12
                 """);
 
-        return jdbcTemplate.query(sql.toString(), args.toArray(), (rs, rowNum) -> new ProductDto.BrandSummary(
+        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> new ProductDto.BrandSummary(
                 rs.getLong("id"),
                 rs.getString("name"),
                 rs.getString("slug"),
                 rs.getLong("product_count")
-        ));
+        ), args.toArray());
     }
 
     private List<ProductDto.TagSummary> loadTagFacets(CatalogCriteria criteria) {
@@ -411,10 +411,10 @@ public class ProductServiceImpl implements ProductService {
                  limit 16
                 """);
 
-        return jdbcTemplate.query(sql.toString(), args.toArray(), (rs, rowNum) -> new ProductDto.TagSummary(
+        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> new ProductDto.TagSummary(
                 rs.getString("tag"),
                 rs.getLong("product_count")
-        ));
+        ), args.toArray());
     }
 
     private ProductDto.PriceRange loadPriceRange(CatalogCriteria criteria) {
@@ -423,7 +423,7 @@ public class ProductServiceImpl implements ProductService {
         List<Object> args = new ArrayList<>();
         appendFilters(criteria, sql, args);
 
-        return jdbcTemplate.query(sql.toString(), args.toArray(), rs -> {
+        return jdbcTemplate.query(sql.toString(), rs -> {
             if (!rs.next()) {
                 return new ProductDto.PriceRange(null, null);
             }
