@@ -59,11 +59,13 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
-		<!-- Redis cache/session support -->
+		<!-- Redis: dependency kept for future use, auto-config excluded via spring.autoconfigure.exclude -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
+		-->
 		<!-- Elasticsearch search capabilities -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
