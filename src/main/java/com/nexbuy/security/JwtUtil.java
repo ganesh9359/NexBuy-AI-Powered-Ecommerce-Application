@@ -15,8 +15,16 @@ public class JwtUtil {
 
     private final Key key;
 
-    public JwtUtil(@Value("${security.jwt.secret:changeme-secret-key-please-update}") String secret) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    public JwtUtil(@Value("${security.jwt.secret:ZGVmYXVsdC1uZXhidXktc2VjcmV0LWtleS1mb3ItZGV2ZWxvcG1lbnQtb25seQ==}") String secret) {
+        // Ensure key is at least 32 bytes for HMAC-SHA256
+        byte[] keyBytes = secret.getBytes();
+        if (keyBytes.length < 32) {
+            byte[] padded = new byte[32];
+            System.arraycopy(keyBytes, 0, padded, 0, keyBytes.length);
+            this.key = Keys.hmacShaKeyFor(padded);
+        } else {
+            this.key = Keys.hmacShaKeyFor(keyBytes);
+        }
     }
 
     public String generateToken(String username, long ttlMillis) {
