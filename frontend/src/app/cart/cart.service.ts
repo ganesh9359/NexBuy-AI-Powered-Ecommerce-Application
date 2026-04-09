@@ -3,6 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface FreeShippingInfo {
+  thresholdCents: number;
+  currentSubtotalCents: number;
+  amountNeededCents: number;
+  isEligible: boolean;
+  progressPercentage: number;
+  formattedThreshold: string;
+  formattedCurrentTotal: string;
+  formattedAmountNeeded: string;
+}
+
 export interface CartTotals {
   itemCount: number;
   subtotalCents: number;
@@ -11,6 +22,7 @@ export interface CartTotals {
   discountCents: number;
   totalCents: number;
   currency: string;
+  freeShippingInfo?: FreeShippingInfo;
 }
 
 export interface CartLineItem {

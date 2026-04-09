@@ -20,15 +20,42 @@
 
       <div class="hero-actions">
         <a class="btn-ghost" routerLink="/order">Back to orders</a>
+
+        <!-- Complete payment -->
         <a class="pill" *ngIf="canCompletePayment(currentOrder)" [routerLink]="['/payment', currentOrder.summary.orderNumber]">Complete payment</a>
-        <button class="btn-ghost" *ngIf="canReturn(currentOrder)" type="button" (click)="requestReturn()" [disabled]="returning">
-          {{ returning ? 'Requesting...' : 'Request return' }}
-        </button>
-        <button class="btn-ghost danger-action" *ngIf="canCancel(currentOrder)" type="button" (click)="cancelOrder()" [disabled]="cancelling">
-          {{ cancelling ? 'Cancelling...' : 'Cancel order' }}
-        </button>
-        <small class="action-note" *ngIf="cancelAvailabilityNote(currentOrder)">{{ cancelAvailabilityNote(currentOrder) }}</small>
-        <small class="action-note" *ngIf="returnAvailabilityNote(currentOrder)">{{ returnAvailabilityNote(currentOrder) }}</small>
+
+        <!-- Cancelled state -->
+        <ng-container *ngIf="normalize(currentOrder.summary.status) === 'cancelled'">
+          <span class="status-terminal tone-danger">
+            <span class="material-icon">cancel</span> Order Cancelled
+          </span>
+          <small class="action-note" *ngIf="cancelAvailabilityNote(currentOrder)">{{ cancelAvailabilityNote(currentOrder) }}</small>
+        </ng-container>
+
+        <!-- Delivered + returned -->
+        <ng-container *ngIf="normalize(currentOrder.summary.status) === 'delivered' && currentOrder.returnRequest">
+          <span class="status-terminal" [ngClass]="'tone-' + toneFor(currentOrder.returnRequest.status)">
+            <span class="material-icon">assignment_return</span>
+            Return {{ prettify(currentOrder.returnRequest.status) }}
+          </span>
+          <small class="action-note">{{ returnAvailabilityNote(currentOrder) }}</small>
+        </ng-container>
+
+        <!-- Delivered + no return yet -->
+        <ng-container *ngIf="normalize(currentOrder.summary.status) === 'delivered' && !currentOrder.returnRequest">
+          <button class="btn-ghost" *ngIf="canReturn(currentOrder)" type="button" (click)="requestReturn()" [disabled]="returning">
+            {{ returning ? 'Requesting...' : 'Request return' }}
+          </button>
+          <small class="action-note" *ngIf="returnAvailabilityNote(currentOrder)">{{ returnAvailabilityNote(currentOrder) }}</small>
+        </ng-container>
+
+        <!-- Active order cancel -->
+        <ng-container *ngIf="canCancel(currentOrder)">
+          <button class="btn-ghost danger-action" type="button" (click)="cancelOrder()" [disabled]="cancelling">
+            {{ cancelling ? 'Cancelling...' : 'Cancel order' }}
+          </button>
+          <small class="action-note" *ngIf="cancelAvailabilityNote(currentOrder)">{{ cancelAvailabilityNote(currentOrder) }}</small>
+        </ng-container>
       </div>
     </header>
 

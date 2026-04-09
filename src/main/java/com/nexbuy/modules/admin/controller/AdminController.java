@@ -10,8 +10,11 @@ import com.nexbuy.modules.admin.dto.AdminProductDto;
 import com.nexbuy.modules.admin.dto.AdminProductRequest;
 import com.nexbuy.modules.admin.dto.AdminProductStockRequest;
 import com.nexbuy.modules.admin.dto.AdminReturnReviewRequest;
+import com.nexbuy.modules.admin.dto.AdminReturnUpdateRequest;
 import com.nexbuy.modules.admin.dto.AdminUploadResponse;
 import com.nexbuy.modules.admin.dto.AdminUserDto;
+import com.nexbuy.modules.admin.dto.RefundStatusDto;
+import com.nexbuy.modules.admin.dto.ReturnRequestDto;
 import com.nexbuy.modules.order.dto.OrderDto;
 import com.nexbuy.modules.admin.service.AdminMediaService;
 import com.nexbuy.modules.admin.service.AdminService;
@@ -97,6 +100,31 @@ public class AdminController {
     public ResponseEntity<OrderDto.OrderDetail> reviewReturn(@PathVariable Long orderId,
                                                              @RequestBody @Valid AdminReturnReviewRequest request) {
         return ResponseEntity.ok(adminService.reviewReturn(orderId, request));
+    }
+
+    @GetMapping("/returns")
+    public ResponseEntity<List<ReturnRequestDto>> getReturnRequests() {
+        return ResponseEntity.ok(adminService.getReturnRequests());
+    }
+
+    @GetMapping("/returns/{returnRequestId}")
+    public ResponseEntity<ReturnRequestDto> getReturnRequest(@PathVariable Long returnRequestId) {
+        return ResponseEntity.ok(adminService.getReturnRequest(returnRequestId));
+    }
+
+    @PatchMapping("/returns/{returnRequestId}")
+    public ResponseEntity<ReturnRequestDto> updateReturnRequest(@PathVariable Long returnRequestId,
+                                                                @RequestBody @Valid AdminReturnUpdateRequest request) {
+        return ResponseEntity.ok(adminService.updateReturnRequest(returnRequestId, request));
+    }
+
+    @GetMapping("/orders/{orderId}/refund-status")
+    public ResponseEntity<RefundStatusDto> getRefundStatus(@PathVariable Long orderId) {
+        RefundStatusDto refund = adminService.getRefundStatus(orderId);
+        if (refund == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(refund);
     }
 
     @GetMapping("/products")

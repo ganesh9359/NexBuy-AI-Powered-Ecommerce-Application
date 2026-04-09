@@ -23,7 +23,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public CartItemDto.CartResponse getCart(String email) {
         long userId = commerceSupport.requireUserId(email);
         return commerceSupport.loadCart(userId);

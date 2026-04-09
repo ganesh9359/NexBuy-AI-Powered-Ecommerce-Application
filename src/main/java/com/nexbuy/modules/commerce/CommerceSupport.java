@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexbuy.exception.CustomException;
 import com.nexbuy.modules.auth.repository.UserRepository;
 import com.nexbuy.modules.cart.dto.CartItemDto;
+import com.nexbuy.modules.cart.dto.FreeShippingInfoDto;
 import com.nexbuy.modules.order.dto.OrderDto;
 import com.nexbuy.modules.payment.integration.PaymentGatewayClient;
 import com.nexbuy.modules.user.dto.UserProfileDto;
-import com.nexbuy.modules.user.dto.UserProfileDto.AddressSummary;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,8 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -36,7 +34,7 @@ import java.util.UUID;
 public class CommerceSupport {
 
     private static final int SHIPPING_CENTS = 19900;
-    private static final int FREE_SHIPPING_THRESHOLD_CENTS = 300000;
+    private static final int FREE_SHIPPING_THRESHOLD_CENTS = 200000; // 2000 rupees
 
     private final JdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
@@ -454,7 +452,8 @@ public class CommerceSupport {
         int shipping = subtotal == 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : SHIPPING_CENTS;
         int discount = 0;
         int total = subtotal + tax + shipping - discount;
-        return new CartItemDto.CartTotals(itemCount, subtotal, tax, shipping, discount, total, "INR");
+        FreeShippingInfoDto freeShippingInfo = new FreeShippingInfoDto(FREE_SHIPPING_THRESHOLD_CENTS, subtotal);
+        return new CartItemDto.CartTotals(itemCount, subtotal, tax, shipping, discount, total, "INR", freeShippingInfo);
     }
 
     public void validateCartForCheckout(CartItemDto.CartResponse cart) {
@@ -732,13 +731,6 @@ public class CommerceSupport {
         String state = Objects.toString(map.get("state"), "");
         String postal = Objects.toString(map.get("postalCode"), "");
         return List.of(city, state, postal).stream().filter(part -> !part.isBlank()).reduce((left, right) -> left + " " + right).orElse("");
-    }
-
-    private int percentage(int amount, int percent) {
-        return BigDecimal.valueOf(amount)
-                .multiply(BigDecimal.valueOf(percent))
-                .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP)
-                .intValue();
     }
 
     private ShipmentSnapshot loadShipmentSnapshot(long orderId) {

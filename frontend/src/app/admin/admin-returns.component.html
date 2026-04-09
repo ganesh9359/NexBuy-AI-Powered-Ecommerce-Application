@@ -1,0 +1,248 @@
+<section class="returns-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <p class="eyebrow">Admin Panel</p>
+      <h1>Return Requests</h1>
+      <p class="subtitle">Review, approve, reject and track all customer return requests.</p>
+    </div>
+    <button class="btn-refresh" type="button" (click)="loadReturns()" [disabled]="loading">
+      <span class="material-icon">refresh</span>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert alert-error" *ngIf="error">
+    <span class="material-icon">error_outline</span> {{ error }}
+  </div>
+  <div class="alert alert-success" *ngIf="successMsg">
+    <span class="material-icon">check_circle</span> {{ successMsg }}
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <span class="material-icon spin">autorenew</span>
+    Loading return requests...
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Filters Bar -->
+    <div class="filters-bar">
+      <div class="filter-field">
+        <span class="material-icon">search</span>
+        <input
+          type="text"
+          placeholder="Search by order number, ID or reason..."
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="applyFilters()"
+        />
+      </div>
+
+      <div class="filter-field select-wrap">
+        <span class="material-icon">filter_list</span>
+        <select [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()">
+          <option value="">All Statuses</option>
+          <option *ngFor="let s of statusOptions" [value]="s">{{ prettify(s) }}</option>
+        </select>
+      </div>
+
+      <div class="filter-count">
+        <strong>{{ filteredReturns.length }}</strong> of {{ returns.length }} requests
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout" [class.panel-open]="selectedReturn">
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div class="empty-state" *ngIf="filteredReturns.length === 0">
+          <span class="material-icon">inbox</span>
+          <p>No return requests found.</p>
+        </div>
+
+        <table *ngIf="filteredReturns.length > 0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Order</th>
+              <th>Customer ID</th>
+              <th>Reason</th>
+              <th>Return Status</th>
+              <th>Refund Status</th>
+              <th>Amount</th>
+              <th>Requested</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let ret of filteredReturns"
+              [class.row-active]="selectedReturn?.id === ret.id"
+              (click)="selectReturn(ret)"
+            >
+              <td class="col-id">{{ ret.id }}</td>
+
+              <td class="col-order">
+                <strong>{{ ret.orderNumber }}</strong>
+                <small>Order #{{ ret.orderId }}</small>
+              </td>
+
+              <td class="col-customer">{{ ret.userId }}</td>
+
+              <td class="col-reason">
+                <span class="reason-text" [title]="ret.reason">{{ ret.reason || '—' }}</span>
+              </td>
+
+              <td class="col-status">
+                <span class="badge" [ngClass]="'tone-' + tone(ret.status)">
+                  {{ prettify(ret.status) }}
+                </span>
+              </td>
+
+              <td class="col-refund">
+                <span class="badge" [ngClass]="'tone-' + tone(ret.refundStatus)">
+                  {{ prettify(ret.refundStatus) }}
+                </span>
+              </td>
+
+              <td class="col-amount">{{ formatPrice(ret.refundAmountInr) }}</td>
+
+              <td class="col-date">{{ formatDate(ret.requestedAt) }}</td>
+
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <div class="inline-actions" *ngIf="actionsFor(ret.status).length > 0; else noAction">
+                  <button
+                    *ngFor="let act of actionsFor(ret.status)"
+                    type="button"
+                    [class]="'action-btn ' + act.cls"
+                    [disabled]="actionInProgress"
+                    (click)="updateStatus(ret.id, act.action)"
+                  >
+                    {{ act.label }}
+                  </button>
+                </div>
+                <ng-template #noAction>
+                  <span class="no-action">—</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Detail Panel -->
+      <aside class="detail-panel" *ngIf="selectedReturn">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Return Detail</p>
+            <h2>{{ selectedReturn.orderNumber }}</h2>
+          </div>
+          <button type="button" class="close-btn" (click)="closeDetail()">
+            <span class="material-icon">close</span>
+          </button>
+        </div>
+
+        <div class="panel-body">
+
+          <!-- Return Info -->
+          <div class="info-block">
+            <h3>Return Info</h3>
+            <div class="info-row">
+              <span>Return ID</span>
+              <strong>#{{ selectedReturn.id }}</strong>
+            </div>
+            <div class="info-row">
+              <span>Order Number</span>
+              <strong>{{ selectedReturn.orderNumber }}</strong>
+            </div>
+            <div class="info-row">
+              <span>Order ID</span>
+              <strong>#{{ selectedReturn.orderId }}</strong>
+            </div>
+            <div class="info-row">
+              <span>Customer ID</span>
+              <strong>#{{ selectedReturn.userId }}</strong>
+            </div>
+            <div class="info-row">
+              <span>Reason</span>
+              <p class="reason-full">{{ selectedReturn.reason || 'Not specified' }}</p>
+            </div>
+          </div>
+
+          <!-- Status Info -->
+          <div class="info-block">
+            <h3>Status</h3>
+            <div class="info-row">
+              <span>Return Status</span>
+              <span class="badge" [ngClass]="'tone-' + tone(selectedReturn.status)">
+                {{ prettify(selectedReturn.status) }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span>Refund Status</span>
+              <span class="badge" [ngClass]="'tone-' + tone(selectedReturn.refundStatus)">
+                {{ prettify(selectedReturn.refundStatus) }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span>Refund Amount</span>
+              <strong>{{ formatPrice(selectedReturn.refundAmountInr) }}</strong>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="info-block">
+            <h3>Timeline</h3>
+            <div class="info-row">
+              <span>Requested</span>
+              <small>{{ formatDate(selectedReturn.requestedAt) }}</small>
+            </div>
+            <div class="info-row" *ngIf="selectedReturn.reviewedAt">
+              <span>Reviewed</span>
+              <small>{{ formatDate(selectedReturn.reviewedAt) }}</small>
+            </div>
+            <div class="info-row" *ngIf="selectedReturn.pickedAt">
+              <span>Picked Up</span>
+              <small>{{ formatDate(selectedReturn.pickedAt) }}</small>
+            </div>
+            <div class="info-row">
+              <span>Last Updated</span>
+              <small>{{ formatDate(selectedReturn.updatedAt) }}</small>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="info-block actions-block" *ngIf="actionsFor(selectedReturn.status).length > 0">
+            <h3>Update Status</h3>
+            <div class="panel-actions">
+              <button
+                *ngFor="let act of actionsFor(selectedReturn.status)"
+                type="button"
+                [class]="'panel-btn ' + act.cls"
+                [disabled]="actionInProgress"
+                (click)="updateStatus(selectedReturn.id, act.action)"
+              >
+                <span *ngIf="actionInProgress" class="material-icon spin">autorenew</span>
+                {{ actionInProgress ? 'Processing...' : act.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="info-block" *ngIf="actionsFor(selectedReturn.status).length === 0">
+            <p class="terminal-note">
+              <span class="material-icon">info</span>
+              This return is <strong>{{ prettify(selectedReturn.status) }}</strong> — no further actions available.
+            </p>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </ng-container>
+
+</section>

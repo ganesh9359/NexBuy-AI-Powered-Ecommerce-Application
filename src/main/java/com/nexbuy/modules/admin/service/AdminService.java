@@ -10,7 +10,10 @@ import com.nexbuy.modules.admin.dto.AdminProductDto;
 import com.nexbuy.modules.admin.dto.AdminProductRequest;
 import com.nexbuy.modules.admin.dto.AdminProductStockRequest;
 import com.nexbuy.modules.admin.dto.AdminReturnReviewRequest;
+import com.nexbuy.modules.admin.dto.AdminReturnUpdateRequest;
 import com.nexbuy.modules.admin.dto.AdminUserDto;
+import com.nexbuy.modules.admin.dto.RefundStatusDto;
+import com.nexbuy.modules.admin.dto.ReturnRequestDto;
 import com.nexbuy.modules.order.dto.OrderDto;
 
 import java.util.List;
@@ -26,6 +29,10 @@ public interface AdminService {
     OrderDto.OrderDetail getOrderDetail(Long orderId);
     AdminOrderDto updateOrderStatus(Long orderId, AdminOrderStatusRequest request);
     OrderDto.OrderDetail reviewReturn(Long orderId, AdminReturnReviewRequest request);
+    List<ReturnRequestDto> getReturnRequests();
+    ReturnRequestDto getReturnRequest(Long returnRequestId);
+    ReturnRequestDto updateReturnRequest(Long returnRequestId, AdminReturnUpdateRequest request);
+    RefundStatusDto getRefundStatus(Long orderId);
     List<AdminProductDto> getProducts();
     AdminProductDto getProduct(Long productId);
     AdminProductDto createProduct(AdminProductRequest request);

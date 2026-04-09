@@ -60,7 +60,7 @@ public class AiCommerceSupport {
     private final JdbcTemplate jdbcTemplate;
     private final ProductService productService;
     private final OpenAIClient openAIClient;
-    private final NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+    private final NumberFormat currency = NumberFormat.getCurrencyInstance(Locale.of("en", "IN"));
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(java.time.Duration.ofSeconds(6))
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -1361,7 +1361,7 @@ public class AiCommerceSupport {
                 int green = ((rgb >> 8) & 0xFF) / 32;
                 int blue = (rgb & 0xFF) / 32;
                 int bucket = (red << 10) | (green << 5) | blue;
-                buckets.merge(bucket, 1, Integer::sum);
+                buckets.merge(bucket, 1, (a, b) -> a + b);
             }
         }
 
@@ -1371,11 +1371,6 @@ public class AiCommerceSupport {
                 .map(Map.Entry::getKey)
                 .map(this::bucketToHex)
                 .toList();
-    }
-
-    private String inferVisualCategory(BufferedImage image) {
-        VisualSignature signature = buildVisualSignature(image);
-        return signature == null ? null : signature.suggestedCategory();
     }
 
     private List<String> inferVisualTags(String category, BufferedImage image, List<String> knownTags) {

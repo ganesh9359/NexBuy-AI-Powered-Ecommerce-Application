@@ -14,7 +14,7 @@ export class AuthGuard implements CanActivate {
     this.auth.rememberReturnUrl(state.url);
     const fallback = this.normalizeFallback(this.auth.getLastVisitedUrl());
     const tree = this.router.parseUrl(fallback);
-    tree.queryParams = { ...tree.queryParams, auth: 'login' };
+    tree.queryParams = { ...tree.queryParams, reason: 'unauthorized' };
     return tree;
   }
 

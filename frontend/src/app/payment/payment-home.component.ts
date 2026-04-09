@@ -247,6 +247,8 @@ export class PaymentHomeComponent implements OnInit {
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.async = true;
       script.dataset['razorpayCheckout'] = 'true';
+      script.setAttribute('integrity', 'sha384-...');
+      script.setAttribute('crossorigin', 'anonymous');
       script.onload = () => resolve();
       script.onerror = () => reject(new Error('Razorpay checkout script failed to load.'));
       document.body.appendChild(script);

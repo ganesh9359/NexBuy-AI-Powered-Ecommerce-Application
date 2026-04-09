@@ -27,11 +27,4 @@ public class UpdatePendingEmailRequest {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    private String normalizeEmail(String email) {
-        if (email == null) {
-            return null;
-        }
-        return email.replaceAll("\\s+", "").trim().toLowerCase();
-    }
 }

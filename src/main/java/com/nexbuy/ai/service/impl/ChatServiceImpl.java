@@ -5,8 +5,6 @@ import com.nexbuy.ai.service.ChatService;
 import com.nexbuy.modules.product.dto.ProductDto;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -216,12 +214,5 @@ public class ChatServiceImpl implements ChatService {
             }
         }
         return false;
-    }
-
-    private String formatPlacedAt(LocalDateTime placedAt) {
-        if (placedAt == null) {
-            return "recently";
-        }
-        return placedAt.format(DateTimeFormatter.ofPattern("d MMM, h:mm a", Locale.ENGLISH));
     }
 }

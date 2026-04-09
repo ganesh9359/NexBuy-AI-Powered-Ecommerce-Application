@@ -142,7 +142,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get userEmail(): string | null {
-    return localStorage.getItem('userEmail');
+    return sessionStorage.getItem('userEmail');
   }
 
   get isAdminLayout(): boolean {

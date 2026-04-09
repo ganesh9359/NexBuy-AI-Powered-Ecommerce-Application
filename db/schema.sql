@@ -250,6 +250,35 @@ CREATE TABLE IF NOT EXISTS shipments (
   CONSTRAINT fk_ship_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS refunds (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  order_id BIGINT NOT NULL UNIQUE,
+  payment_id BIGINT NULL,
+  amount_cents INT NOT NULL,
+  currency VARCHAR(3) NOT NULL DEFAULT 'INR',
+  status ENUM('pending','processing','processed','failed','cancelled') NOT NULL DEFAULT 'pending',
+  provider_refund_id VARCHAR(255) NULL,
+  note TEXT NULL,
+  requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  processed_at DATETIME NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_refund_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_refund_payment FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS return_requests (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  order_id BIGINT NOT NULL UNIQUE,
+  status ENUM('requested','approved','accepted','rejected','completed','cancelled','received','refunded') NOT NULL DEFAULT 'requested',
+  refund_status ENUM('not_started','pending','processing','processed','failed','cancelled') NOT NULL DEFAULT 'not_started',
+  reason TEXT NULL,
+  requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reviewed_at DATETIME NULL,
+  picked_at DATETIME NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_return_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- REVIEWS & WISHLIST
 CREATE TABLE IF NOT EXISTS reviews (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -311,5 +340,9 @@ CREATE INDEX idx_inventory_stock ON inventory(stock_qty);
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_number ON orders(order_number);
 CREATE INDEX idx_payments_order ON payments(order_id);
+CREATE INDEX idx_refunds_order ON refunds(order_id);
+CREATE INDEX idx_refunds_status ON refunds(status);
+CREATE INDEX idx_return_requests_order ON return_requests(order_id);
+CREATE INDEX idx_return_requests_status ON return_requests(status);
 
 SET FOREIGN_KEY_CHECKS=1;

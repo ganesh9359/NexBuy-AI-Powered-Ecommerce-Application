@@ -4,6 +4,14 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# ── Sensitive config — NEVER commit these ────────────────────────────────────
+src/main/resources/application-local.properties
+src/main/resources/application-*.properties
+!src/main/resources/application.properties
+!src/main/resources/application-test.properties
+.env
+*.env
+
 ### STS ###
 .apt_generated
 .classpath
@@ -31,3 +39,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Uploads (local dev only) ─────────────────────────────────────────────────
+uploads/

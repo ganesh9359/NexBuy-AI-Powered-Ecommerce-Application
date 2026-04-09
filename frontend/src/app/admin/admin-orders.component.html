@@ -2,175 +2,326 @@
   <div class="panel-toolbar">
     <div>
       <p class="eyebrow">Fulfilment desk</p>
-      <h4>{{ filteredOrders.length }} orders</h4>
+      <h4 *ngIf="!showReturns">{{ filteredOrders.length }} orders</h4>
+      <h4 *ngIf="showReturns">{{ filteredReturns.length }} return requests</h4>
     </div>
     <div class="toolbar-actions">
       <select [ngModel]="statusFilter" (ngModelChange)="setStatusFilter($event)">
-        <option *ngFor="let status of filterStatuses" [ngValue]="status">{{ status === 'ALL' ? 'All statuses' : status }}</option>
+        <option *ngFor="let status of filterStatuses" [ngValue]="status">
+          {{ status === 'ALL' ? 'All statuses' : status === 'RETURNS' ? '↩ Return Requests' : status }}
+        </option>
       </select>
-      <input [(ngModel)]="query" placeholder="Search order number, email, status" />
+      <input
+        [(ngModel)]="query"
+        [placeholder]="showReturns ? 'Search order number, customer ID, reason...' : 'Search order number, email, status'"
+      />
     </div>
   </div>
 
-  <div class="inline-error" *ngIf="error">{{ error }}</div>
+  <div class="inline-error" *ngIf="error || returnsError">{{ error || returnsError }}</div>
+  <div class="inline-success" *ngIf="returnsSuccessMsg">{{ returnsSuccessMsg }}</div>
 
-  <div class="table-wrap" *ngIf="!loading; else loadingTpl">
-    <table *ngIf="filteredOrders.length; else emptyTpl">
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>User</th>
-          <th>Total</th>
-          <th>Payment</th>
-          <th>Status</th>
-          <th>Placed</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <ng-container *ngFor="let order of filteredOrders">
+  <!-- ── ORDERS VIEW ─────────────────────────────────────── -->
+  <ng-container *ngIf="!showReturns">
+    <div class="table-wrap" *ngIf="!loading; else loadingTpl">
+      <table *ngIf="filteredOrders.length; else emptyTpl">
+        <thead>
           <tr>
-            <td>
-              <strong>{{ order.orderNumber }}</strong>
-            </td>
-            <td>{{ order.userEmail }}</td>
-            <td>{{ formatPrice(order.totalCents) }}</td>
-            <td>{{ order.paymentStatus }}</td>
-            <td>
-              <ng-container *ngIf="canEditStatus(order); else lockedStatusTpl">
-                <select [(ngModel)]="draftStatuses[order.id]">
-                  <option [ngValue]="undefined">{{ order.status }}</option>
-                  <option *ngFor="let status of statuses" [ngValue]="status">{{ status }}</option>
-                </select>
-              </ng-container>
-              <ng-template #lockedStatusTpl>
-                <div class="locked-chip">{{ order.status }}</div>
-              </ng-template>
-            </td>
-            <td>{{ order.placedAt | date:'medium' }}</td>
-            <td>
-              <div class="action-stack">
-                <button
-                  type="button"
-                  class="ghost-btn"
-                  (click)="toggleDetails(order)"
-                  [disabled]="detailsLoadingId === order.id"
-                >
-                  {{ isExpanded(order) ? 'Hide details' : (detailsLoadingId === order.id ? 'Opening...' : 'View details') }}
-                </button>
-                <button
-                  type="button"
-                  (click)="saveStatus(order)"
-                  [disabled]="savingId === order.id || !canEditStatus(order)"
-                >
-                  {{ canEditStatus(order) ? (savingId === order.id ? 'Saving...' : 'Save') : 'Locked' }}
-                </button>
-              </div>
-            </td>
+            <th>Order</th>
+            <th>User</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Placed</th>
+            <th>Action</th>
           </tr>
-
-          <tr class="details-row" *ngIf="isExpanded(order)">
-            <td colspan="7">
-              <div class="details-wrap" *ngIf="orderDetails[order.id] as detail; else detailsLoadingTpl">
-                <div class="details-head">
-                  <div>
-                    <p class="eyebrow">Order detail</p>
-                    <h5>{{ detail.summary.orderNumber }}</h5>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let order of filteredOrders">
+            <tr>
+              <td><strong>{{ order.orderNumber }}</strong></td>
+              <td>{{ order.userEmail }}</td>
+              <td>{{ formatPrice(order.totalCents) }}</td>
+              <td>{{ order.paymentStatus }}</td>
+              <td>
+                <ng-container *ngIf="canEditStatus(order); else lockedStatusTpl">
+                  <select [(ngModel)]="draftStatuses[order.id]">
+                    <option [ngValue]="undefined">{{ order.status }}</option>
+                    <option *ngFor="let status of statuses" [ngValue]="status">{{ status }}</option>
+                  </select>
+                </ng-container>
+                <ng-template #lockedStatusTpl>
+                  <div class="locked-chip">{{ order.status }}</div>
+                  <div class="locked-chip returned-chip"
+                    *ngIf="returnedOrderIds.has(order.id)">
+                    ↩ Returned
                   </div>
-                  <div class="details-summary">
-                    <span>{{ detail.summary.itemCount }} item{{ detail.summary.itemCount === 1 ? '' : 's' }}</span>
-                    <span>{{ detail.summary.status }}</span>
-                    <strong>{{ formatPrice(detail.summary.totalCents) }}</strong>
-                  </div>
+                </ng-template>
+              </td>
+              <td>{{ order.placedAt | date:'medium' }}</td>
+              <td>
+                <div class="action-stack">
+                  <button
+                    type="button"
+                    class="ghost-btn"
+                    (click)="toggleDetails(order)"
+                    [disabled]="detailsLoadingId === order.id"
+                  >
+                    {{ isExpanded(order) ? 'Hide details' : (detailsLoadingId === order.id ? 'Opening...' : 'View details') }}
+                  </button>
+                  <button
+                    type="button"
+                    (click)="saveStatus(order)"
+                    [disabled]="savingId === order.id || !canEditStatus(order)"
+                  >
+                    {{ canEditStatus(order) ? (savingId === order.id ? 'Saving...' : 'Save') : 'Locked' }}
+                  </button>
                 </div>
+              </td>
+            </tr>
 
-                <div class="details-grid">
-                  <section class="detail-card">
-                    <p class="eyebrow">Items</p>
-                    <div class="detail-item" *ngFor="let item of detail.items">
-                      <div>
-                        <strong>{{ item.title }}</strong>
-                        <p>SKU {{ item.sku }} · Qty {{ item.quantity }}</p>
+            <tr class="details-row" *ngIf="isExpanded(order)">
+              <td colspan="7">
+                <div class="details-wrap" *ngIf="orderDetails[order.id] as detail; else detailsLoadingTpl">
+                  <div class="details-head">
+                    <div>
+                      <p class="eyebrow">Order detail</p>
+                      <h5>{{ detail.summary.orderNumber }}</h5>
+                    </div>
+                    <div class="details-summary">
+                      <span>{{ detail.summary.itemCount }} item{{ detail.summary.itemCount === 1 ? '' : 's' }}</span>
+                      <span>{{ detail.summary.status }}</span>
+                      <strong>{{ formatPrice(detail.summary.totalCents) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="details-grid">
+                    <section class="detail-card">
+                      <p class="eyebrow">Items</p>
+                      <div class="detail-item" *ngFor="let item of detail.items">
+                        <div>
+                          <strong>{{ item.title }}</strong>
+                          <p>SKU {{ item.sku }} · Qty {{ item.quantity }}</p>
+                        </div>
+                        <strong>{{ formatPrice(item.lineTotalCents) }}</strong>
                       </div>
-                      <strong>{{ formatPrice(item.lineTotalCents) }}</strong>
-                    </div>
-                  </section>
+                    </section>
 
-                  <section class="detail-card">
-                    <p class="eyebrow">Addresses</p>
-                    <div class="address-block">
-                      <strong>Shipping</strong>
-                      <p>{{ detail.shippingAddress }}</p>
-                    </div>
-                    <div class="address-block">
-                      <strong>Billing</strong>
-                      <p>{{ detail.billingAddress }}</p>
-                    </div>
-                  </section>
+                    <section class="detail-card">
+                      <p class="eyebrow">Addresses</p>
+                      <div class="address-block">
+                        <strong>Shipping</strong>
+                        <p>{{ detail.shippingAddress }}</p>
+                      </div>
+                      <div class="address-block">
+                        <strong>Billing</strong>
+                        <p>{{ detail.billingAddress }}</p>
+                      </div>
+                    </section>
 
-                  <section class="detail-card">
-                    <p class="eyebrow">Payment</p>
-                    <strong>{{ detail.payment?.checkoutLabel || 'Payment details unavailable' }}</strong>
-                    <p>Status: {{ detail.payment?.status || detail.summary.paymentStatus }}</p>
-                    <p>Placed: {{ formatDate(detail.summary.placedAt) }}</p>
-                  </section>
+                    <section class="detail-card">
+                      <p class="eyebrow">Payment</p>
+                      <strong>{{ detail.payment?.checkoutLabel || 'Payment details unavailable' }}</strong>
+                      <p>Status: {{ detail.payment?.status || detail.summary.paymentStatus }}</p>
+                      <p>Placed: {{ formatDate(detail.summary.placedAt) }}</p>
+                    </section>
 
-                  <section class="detail-card" *ngIf="detail.refund as refund">
-                    <p class="eyebrow">Refund</p>
-                    <strong>{{ prettify(refund.status) }}</strong>
-                    <p>Amount: {{ formatPrice(refund.amountCents) }}</p>
-                    <p *ngIf="refund.requestedAt">Requested: {{ formatDate(refund.requestedAt) }}</p>
-                    <p *ngIf="refund.processedAt">Completed: {{ formatDate(refund.processedAt) }}</p>
-                    <p *ngIf="refund.note">{{ refund.note }}</p>
-                  </section>
+                    <section class="detail-card" *ngIf="detail.refund as refund">
+                      <p class="eyebrow">Refund</p>
+                      <strong>{{ prettify(refund.status) }}</strong>
+                      <p>Amount: {{ formatPrice(refund.amountCents) }}</p>
+                      <p *ngIf="refund.requestedAt">Requested: {{ formatDate(refund.requestedAt) }}</p>
+                      <p *ngIf="refund.processedAt">Completed: {{ formatDate(refund.processedAt) }}</p>
+                      <p *ngIf="refund.note">{{ refund.note }}</p>
+                    </section>
 
-                  <section class="detail-card" *ngIf="detail.returnRequest as returnRequest">
-                    <p class="eyebrow">Return request</p>
-                    <strong>{{ prettify(returnRequest.status) }}</strong>
-                    <p *ngIf="returnRequest.reason">Reason: {{ returnRequest.reason }}</p>
-                    <p>Refund: {{ prettify(returnRequest.refundStatus) }}</p>
-                    <p>Requested: {{ formatDate(returnRequest.requestedAt) }}</p>
-                    <p *ngIf="returnRequest.reviewedAt">Reviewed: {{ formatDate(returnRequest.reviewedAt) }}</p>
-                    <div class="return-actions" *ngIf="canReviewReturn(detail)">
-                      <button
-                        type="button"
-                        class="ghost-btn approve-btn"
-                        (click)="reviewReturn(order, 'approve')"
-                        [disabled]="returnReviewingId === order.id"
-                      >
-                        {{ returnReviewingId === order.id ? 'Saving...' : 'Approve return & refund' }}
-                      </button>
-                      <button
-                        type="button"
-                        class="ghost-btn reject-btn"
-                        (click)="reviewReturn(order, 'reject')"
-                        [disabled]="returnReviewingId === order.id"
-                      >
-                        Reject return
-                      </button>
-                    </div>
-                  </section>
+                    <section class="detail-card" *ngIf="detail.returnRequest as returnRequest">
+                      <p class="eyebrow">Return request</p>
+                      <strong>{{ prettify(returnRequest.status) }}</strong>
+                      <p *ngIf="returnRequest.reason">Reason: {{ returnRequest.reason }}</p>
+                      <p>Refund: {{ prettify(returnRequest.refundStatus) }}</p>
+                      <p>Requested: {{ formatDate(returnRequest.requestedAt) }}</p>
+                      <p *ngIf="returnRequest.reviewedAt">Reviewed: {{ formatDate(returnRequest.reviewedAt) }}</p>
+                      <div class="return-actions" *ngIf="canReviewReturn(detail)">
+                        <button
+                          type="button"
+                          class="ghost-btn approve-btn"
+                          (click)="reviewReturn(order, 'approve')"
+                          [disabled]="returnReviewingId === order.id"
+                        >
+                          {{ returnReviewingId === order.id ? 'Saving...' : 'Approve return & refund' }}
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost-btn reject-btn"
+                          (click)="reviewReturn(order, 'reject')"
+                          [disabled]="returnReviewingId === order.id"
+                        >
+                          Reject return
+                        </button>
+                      </div>
+                    </section>
 
-                  <section class="detail-card timeline-card">
-                    <p class="eyebrow">Timeline</p>
-                    <div class="timeline-entry" *ngFor="let event of detail.timeline">
-                      <strong>{{ event.label }}</strong>
-                      <span>{{ formatDate(event.at) }}</span>
-                      <p>{{ event.detail }}</p>
-                    </div>
-                  </section>
+                    <section class="detail-card timeline-card">
+                      <p class="eyebrow">Timeline</p>
+                      <div class="timeline-entry" *ngFor="let event of detail.timeline">
+                        <strong>{{ event.label }}</strong>
+                        <span>{{ formatDate(event.at) }}</span>
+                        <p>{{ event.detail }}</p>
+                      </div>
+                    </section>
+                  </div>
                 </div>
-              </div>
 
-              <ng-template #detailsLoadingTpl>
-                <div class="details-loading">{{ detailError || 'Loading order details...' }}</div>
-              </ng-template>
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
-  </div>
+                <ng-template #detailsLoadingTpl>
+                  <div class="details-loading">{{ detailError || 'Loading order details...' }}</div>
+                </ng-template>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <!-- ── RETURNS VIEW ────────────────────────────────────── -->
+  <ng-container *ngIf="showReturns">
+    <div class="table-wrap" *ngIf="!returnsLoading; else returnsLoadingTpl">
+      <div class="returns-layout" [class.panel-open]="selectedReturn">
+
+        <!-- Returns Table -->
+        <div class="returns-table-wrap">
+          <table *ngIf="filteredReturns.length; else returnsEmptyTpl">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Order</th>
+                <th>Customer ID</th>
+                <th>Reason</th>
+                <th>Return Status</th>
+                <th>Refund Status</th>
+                <th>Amount</th>
+                <th>Requested</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let ret of filteredReturns"
+                [class.row-active]="selectedReturn?.id === ret.id"
+                (click)="selectReturn(ret)"
+              >
+                <td class="col-muted">{{ ret.id }}</td>
+                <td>
+                  <strong>{{ ret.orderNumber }}</strong>
+                  <small class="sub-text">Order #{{ ret.orderId }}</small>
+                </td>
+                <td class="col-muted">{{ ret.userId }}</td>
+                <td>
+                  <span class="reason-clip" [title]="ret.reason">{{ ret.reason || '—' }}</span>
+                </td>
+                <td>
+                  <span class="ret-badge" [ngClass]="'tone-' + tone(ret.status)">
+                    {{ prettify(ret.status) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="ret-badge" [ngClass]="'tone-' + tone(ret.refundStatus)">
+                    {{ prettify(ret.refundStatus) }}
+                  </span>
+                </td>
+                <td><strong>{{ formatReturnPrice(ret.refundAmountInr) }}</strong></td>
+                <td class="col-muted">{{ formatDate(ret.requestedAt) }}</td>
+                <td (click)="$event.stopPropagation()">
+                  <div class="ret-inline-actions" *ngIf="returnActionsFor(ret.status).length > 0; else noAction">
+                    <button
+                      *ngFor="let act of returnActionsFor(ret.status)"
+                      type="button"
+                      [class]="'ghost-btn ' + act.cls"
+                      [disabled]="returnsActionInProgress"
+                      (click)="updateReturnStatus(ret.id, act.action)"
+                    >{{ act.label }}</button>
+                  </div>
+                  <ng-template #noAction><span class="col-muted">—</span></ng-template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ng-template #returnsEmptyTpl>
+            <div class="empty-state">No return requests found.</div>
+          </ng-template>
+        </div>
+
+        <!-- Return Detail Panel -->
+        <aside class="ret-detail-panel" *ngIf="selectedReturn">
+          <div class="ret-panel-header">
+            <div>
+              <p class="eyebrow">Return Detail</p>
+              <h5>{{ selectedReturn.orderNumber }}</h5>
+            </div>
+            <button type="button" class="ghost-btn" (click)="closeReturnDetail()">✕</button>
+          </div>
+
+          <div class="ret-panel-body">
+            <div class="ret-info-block">
+              <p class="eyebrow">Return Info</p>
+              <div class="ret-row"><span>Return ID</span><strong>#{{ selectedReturn.id }}</strong></div>
+              <div class="ret-row"><span>Order</span><strong>{{ selectedReturn.orderNumber }}</strong></div>
+              <div class="ret-row"><span>Customer ID</span><strong>#{{ selectedReturn.userId }}</strong></div>
+              <div class="ret-row"><span>Reason</span><span>{{ selectedReturn.reason || 'Not specified' }}</span></div>
+            </div>
+
+            <div class="ret-info-block">
+              <p class="eyebrow">Status</p>
+              <div class="ret-row">
+                <span>Return</span>
+                <span class="ret-badge" [ngClass]="'tone-' + tone(selectedReturn.status)">{{ prettify(selectedReturn.status) }}</span>
+              </div>
+              <div class="ret-row">
+                <span>Refund</span>
+                <span class="ret-badge" [ngClass]="'tone-' + tone(selectedReturn.refundStatus)">{{ prettify(selectedReturn.refundStatus) }}</span>
+              </div>
+              <div class="ret-row"><span>Amount</span><strong>{{ formatReturnPrice(selectedReturn.refundAmountInr) }}</strong></div>
+            </div>
+
+            <div class="ret-info-block">
+              <p class="eyebrow">Timeline</p>
+              <div class="ret-row"><span>Requested</span><small>{{ formatDate(selectedReturn.requestedAt) }}</small></div>
+              <div class="ret-row" *ngIf="selectedReturn.reviewedAt"><span>Reviewed</span><small>{{ formatDate(selectedReturn.reviewedAt) }}</small></div>
+              <div class="ret-row" *ngIf="selectedReturn.pickedAt"><span>Picked Up</span><small>{{ formatDate(selectedReturn.pickedAt) }}</small></div>
+              <div class="ret-row"><span>Updated</span><small>{{ formatDate(selectedReturn.updatedAt) }}</small></div>
+            </div>
+
+            <div class="ret-info-block" *ngIf="returnActionsFor(selectedReturn.status).length > 0">
+              <p class="eyebrow">Update Status</p>
+              <div class="ret-panel-actions">
+                <button
+                  *ngFor="let act of returnActionsFor(selectedReturn.status)"
+                  type="button"
+                  [class]="'ghost-btn ' + act.cls"
+                  [disabled]="returnsActionInProgress"
+                  (click)="updateReturnStatus(selectedReturn.id, act.action)"
+                >
+                  {{ returnsActionInProgress ? 'Processing...' : act.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="ret-info-block" *ngIf="returnActionsFor(selectedReturn.status).length === 0">
+              <p class="col-muted">This return is <strong>{{ prettify(selectedReturn.status) }}</strong> — no further actions.</p>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+
+    <ng-template #returnsLoadingTpl>
+      <section class="panel empty-state">Loading return requests...</section>
+    </ng-template>
+  </ng-container>
+
 </section>
 
 <ng-template #loadingTpl>
