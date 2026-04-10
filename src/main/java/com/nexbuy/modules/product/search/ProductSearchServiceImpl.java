@@ -1,7 +1,6 @@
 package com.nexbuy.modules.product.search;
 
 import com.nexbuy.modules.product.dto.ProductDto;
-import com.nexbuy.modules.product.service.ProductService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +13,10 @@ import java.util.stream.Collectors;
 public class ProductSearchServiceImpl implements ProductSearchService {
 
     private final JdbcTemplate jdbcTemplate;
-    private final ProductService productService;
     
-    // Search term mappings for intelligent matching
-    private static final Map<String, List<String>> SEARCH_MAPPINGS = Map.of(
+    public ProductSearchServiceImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
         "phone", List.of("mobile", "smartphone", "cell", "iphone", "android", "samsung", "oneplus"),
         "mobile", List.of("phone", "smartphone", "cell", "iphone", "android", "samsung", "oneplus"),
         "laptop", List.of("computer", "notebook", "pc", "macbook", "dell", "hp", "lenovo"),
@@ -34,10 +33,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         "case", List.of("cover", "protection", "phone case", "laptop bag", "screen guard")
     );
 
-    public ProductSearchServiceImpl(JdbcTemplate jdbcTemplate, ProductService productService) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.productService = productService;
-    }
+    // Search term mappings for intelligent matching
+    private static final Map<String, List<String>> SEARCH_MAPPINGS = Map.of(
 
     @Override
     public ProductDto.ProductListResponse enhancedSearch(String query, String category, String brand, 
@@ -404,14 +401,39 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         if (productIds.isEmpty()) {
             return Collections.emptyList();
         }
-        
         try {
-            // Use the existing product service to load cards
-            return productService.getRelatedProducts("dummy", productIds.size())
-                    .stream()
-                    .limit(productIds.size())
-                    .collect(Collectors.toList());
+            String inClause = productIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+            String sql = """
+                SELECT p.id, p.slug, p.title, p.description, p.cover_image,
+                       c.name as category_name, c.slug as category_slug,
+                       b.name as brand_name, b.slug as brand_slug,
+                       pv.sku, pv.name as variant_name,
+                       COALESCE(pv.price_cents, 0) as price_cents,
+                       pv.compare_at_cents, pv.currency,
+                       COALESCE(i.stock_qty, 0) as stock_qty,
+                       COALESCE(i.low_stock_threshold, 5) as low_stock_threshold,
+                       COALESCE(i.is_backorder_allowed, false) as is_backorder_allowed
+                FROM products p
+                JOIN categories c ON c.id = p.category_id
+                LEFT JOIN brands b ON b.id = p.brand_id
+                LEFT JOIN product_variants pv ON pv.id = (
+                    SELECT pv2.id FROM product_variants pv2 WHERE pv2.product_id = p.id ORDER BY pv2.id ASC LIMIT 1
+                )
+                LEFT JOIN inventory i ON i.variant_id = pv.id
+                WHERE p.id IN (%s)
+                """.formatted(inClause);
+            return jdbcTemplate.query(sql, (rs, rowNum) -> new ProductDto.ProductCard(
+                rs.getLong("id"), rs.getString("slug"), rs.getString("title"),
+                rs.getString("description"), rs.getString("cover_image"),
+                rs.getString("category_name"), rs.getString("category_slug"),
+                rs.getString("brand_name"), rs.getString("brand_slug"),
+                rs.getString("sku"), rs.getString("variant_name"),
+                rs.getInt("price_cents"), rs.getObject("compare_at_cents", Integer.class),
+                rs.getString("currency") == null ? "INR" : rs.getString("currency"),
+                null, Collections.emptyList(), Collections.emptyList()
+            ), productIds.toArray());
         } catch (Exception e) {
+            System.err.println("Error loading product cards: " + e.getMessage());
             return Collections.emptyList();
         }
     }

@@ -2,7 +2,6 @@ package com.nexbuy.modules.product.service.impl;
 
 import com.nexbuy.exception.CustomException;
 import com.nexbuy.modules.product.dto.ProductDto;
-import com.nexbuy.modules.product.search.ProductSearchService;
 import com.nexbuy.modules.product.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,11 +31,9 @@ public class ProductServiceImpl implements ProductService {
     private static final int MAX_HOME_LIMIT = 12;
 
     private final JdbcTemplate jdbcTemplate;
-    private final ProductSearchService productSearchService;
 
-    public ProductServiceImpl(JdbcTemplate jdbcTemplate, ProductSearchService productSearchService) {
+    public ProductServiceImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.productSearchService = productSearchService;
     }
 
     @Override
@@ -143,8 +140,7 @@ public class ProductServiceImpl implements ProductService {
                                                  String sort,
                                                  int page,
                                                  int size) {
-        // Use enhanced search service for better results
-        return productSearchService.enhancedSearch(query, category, brand, tag, minPrice, maxPrice, inStock, sort, page, size);
+        return getCatalog(query, category, brand, tag, minPrice, maxPrice, inStock, sort, page, size);
     }
 
     @Override
@@ -664,6 +660,19 @@ public class ProductServiceImpl implements ProductService {
         return normalized == null ? null : normalized.toLowerCase(Locale.ROOT);
     }
 
+    private record CatalogCriteria(
+            String query,
+            String category,
+            String brand,
+            String tag,
+            Integer minPrice,
+            Integer maxPrice,
+            Boolean inStock,
+            String sort,
+            int page,
+            int size
+    ) {}
+
     private List<ProductDto.ProductCard> getIntelligentSearchResults(String query, int limit) {
         // Intelligent search with fuzzy matching and related terms
         String normalizedQuery = query.toLowerCase(Locale.ROOT).trim();
@@ -740,16 +749,6 @@ public class ProductServiceImpl implements ProductService {
             System.err.println("Error loading recommended products: " + e.getMessage());
             return Collections.emptyList();
         }
-    }
-                                   String category,
-                                   String brand,
-                                   String tag,
-                                   Integer minPrice,
-                                   Integer maxPrice,
-                                   Boolean inStock,
-                                   String sort,
-                                   int page,
-                                   int size) {
     }
 
     private static final class ProductSnapshot {
