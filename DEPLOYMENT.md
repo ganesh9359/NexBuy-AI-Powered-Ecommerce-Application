@@ -21,6 +21,14 @@ Set these environment variables in cloud instead of editing source:
 - `REDIS_PORT`
 - `REDIS_SSL_ENABLED`
 
+## Aiven Bootstrap
+
+For a fresh Aiven MySQL database, run:
+
+- `db/aiven_bootstrap.sql`
+
+That single script creates the schema and seeds the storefront catalog in one execution.
+
 ## Frontend
 
 The Angular app now reads `assets/runtime-config.js` at startup. In each environment, set:
