@@ -93,29 +93,37 @@ public class AiCommerceSupport {
     }
 
     public void logAiRequest(Long userId, String type, String requestPayload, String responseRef) {
-        jdbcTemplate.update(
-                """
-                        insert into ai_requests (user_id, type, request_payload, response_ref, created_at)
-                        values (?, ?, ?, ?, current_timestamp)
-                        """,
-                userId,
-                safeEnum(type),
-                toJsonPayload(requestPayload),
-                truncate(responseRef, 1000)
-        );
+        try {
+            jdbcTemplate.update(
+                    """
+                            insert into ai_requests (user_id, type, request_payload, response_ref, created_at)
+                            values (?, ?, ?, ?, current_timestamp)
+                            """,
+                    userId,
+                    safeEnum(type),
+                    toJsonPayload(requestPayload),
+                    truncate(responseRef, 1000)
+            );
+        } catch (Exception e) {
+            System.err.println("logAiRequest failed (non-fatal): " + e.getMessage());
+        }
     }
 
     public void logSearch(Long userId, String query, String type, int resultCount) {
-        jdbcTemplate.update(
-                """
-                        insert into searches (user_id, query_text, type, result_count, created_at)
-                        values (?, ?, ?, ?, current_timestamp)
-                        """,
-                userId,
-                truncate(query == null || query.isBlank() ? "ai search" : query.trim(), 255),
-                safeEnum(type),
-                resultCount
-        );
+        try {
+            jdbcTemplate.update(
+                    """
+                            insert into searches (user_id, query_text, type, result_count, created_at)
+                            values (?, ?, ?, ?, current_timestamp)
+                            """,
+                    userId,
+                    truncate(query == null || query.isBlank() ? "ai search" : query.trim(), 255),
+                    safeEnum(type),
+                    resultCount
+            );
+        } catch (Exception e) {
+            System.err.println("logSearch failed (non-fatal): " + e.getMessage());
+        }
     }
 
     public ShoppingIntent interpretShoppingIntent(String rawText) {
@@ -1392,43 +1400,15 @@ public class AiCommerceSupport {
     }
 
     private String inferCatalogCategory(VisualSignature uploadedSignature, List<String> categories) {
-        if (uploadedSignature == null || categories == null || categories.isEmpty()) {
+        // Skip per-category DB queries to avoid N×SQL timeout on Render free tier.
+        // Visual signature alone (phoneAffinity) is sufficient for the common case.
+        if (uploadedSignature == null) {
             return null;
         }
-
-        String bestCategory = null;
-        double bestScore = 0;
-        for (String category : categories) {
-            List<ProductDto.ProductCard> representatives = productService.getCatalog(
-                    null,
-                    category,
-                    null,
-                    null,
-                    null,
-                    null,
-                    true,
-                    "newest",
-                    1,
-                    6
-            ).items();
-
-            List<Integer> scores = representatives.stream()
-                    .map(product -> scoreVisualSimilarity(product, uploadedSignature))
-                    .filter(score -> score > 0)
-                    .sorted(Collections.reverseOrder())
-                    .limit(2)
-                    .toList();
-            if (scores.isEmpty()) {
-                continue;
-            }
-            double categoryScore = scores.stream().mapToInt(Integer::intValue).average().orElse(0);
-            if (categoryScore > bestScore) {
-                bestScore = categoryScore;
-                bestCategory = category;
-            }
+        if (uploadedSignature.phoneAffinity() >= 0.48) {
+            return categories.contains("mobiles") ? "mobiles" : null;
         }
-
-        return bestScore >= 34 ? bestCategory : null;
+        return null;
     }
 
     private double colorfulPixelRatio(BufferedImage image, int startX, int endX, int startY, int endY) {
@@ -1565,7 +1545,8 @@ public class AiCommerceSupport {
     }
 
     private String safeEnum(String value) {
-        return normalize(value).replace('-', '_');
+        String normalized = normalize(value);
+        return normalized == null ? null : normalized.replace('-', '_');
     }
 
     private String toJsonPayload(String payload) {

@@ -33,10 +33,63 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     public ProductDto.ProductListResponse enhancedSearch(String query, String category, String brand,
                                                          String tag, Integer minPrice, Integer maxPrice,
                                                          Boolean inStock, String sort, int page, int size) {
-        return new ProductDto.ProductListResponse(
-            Collections.emptyList(), page, size, 0, 0,
-            query, category, brand, tag, sort != null ? sort : "relevance", null
-        );
+        if (query == null || query.trim().isEmpty()) {
+            return new ProductDto.ProductListResponse(
+                Collections.emptyList(), page, size, 0, 0,
+                query, category, brand, tag, sort != null ? sort : "relevance", null
+            );
+        }
+
+        String normalizedQuery = query.toLowerCase().trim();
+        Set<String> expandedTerms = new LinkedHashSet<>();
+        expandedTerms.add(normalizedQuery);
+
+        for (Map.Entry<String, List<String>> entry : SEARCH_MAPPINGS.entrySet()) {
+            if (normalizedQuery.contains(entry.getKey()) ||
+                    entry.getValue().stream().anyMatch(normalizedQuery::contains)) {
+                expandedTerms.add(entry.getKey());
+                expandedTerms.addAll(entry.getValue());
+            }
+        }
+
+        try {
+            StringBuilder sql = new StringBuilder("""
+                SELECT DISTINCT p.id
+                FROM products p
+                JOIN categories c ON c.id = p.category_id
+                LEFT JOIN brands b ON b.id = p.brand_id
+                LEFT JOIN product_variants pv ON pv.id = (
+                    SELECT pv2.id FROM product_variants pv2 WHERE pv2.product_id = p.id ORDER BY pv2.id ASC LIMIT 1
+                )
+                LEFT JOIN inventory i ON i.variant_id = pv.id
+                WHERE LOWER(p.status) = 'active' AND (
+                """);
+
+            List<Object> args = new ArrayList<>();
+            boolean first = true;
+            for (String term : expandedTerms) {
+                if (!first) sql.append(" OR ");
+                String like = "%" + term + "%";
+                sql.append("(LOWER(p.title) LIKE ? OR LOWER(COALESCE(b.name,'')) LIKE ? OR LOWER(c.name) LIKE ?)");
+                args.add(like); args.add(like); args.add(like);
+                first = false;
+            }
+            sql.append(") ORDER BY p.created_at DESC LIMIT ?");
+            args.add(Math.min(size, 48));
+
+            List<Long> ids = jdbcTemplate.queryForList(sql.toString(), Long.class, args.toArray());
+            List<ProductDto.ProductCard> items = loadProductCards(ids);
+            return new ProductDto.ProductListResponse(
+                items, page, size, items.size(), 1,
+                query, category, brand, tag, sort != null ? sort : "relevance", null
+            );
+        } catch (Exception e) {
+            System.err.println("enhancedSearch failed: " + e.getMessage());
+            return new ProductDto.ProductListResponse(
+                Collections.emptyList(), page, size, 0, 0,
+                query, category, brand, tag, sort != null ? sort : "relevance", null
+            );
+        }
     }
 
     @Override

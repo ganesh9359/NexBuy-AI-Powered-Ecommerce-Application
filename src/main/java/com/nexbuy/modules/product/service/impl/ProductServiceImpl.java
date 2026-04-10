@@ -259,23 +259,29 @@ public class ProductServiceImpl implements ProductService {
             orderById.put(ids.get(index), index);
         }
 
-        String sql = selectClause() + baseFromClause() + " where p.id in (" + placeholders(ids.size()) + ")";
-        Map<Long, ProductSnapshot> snapshotsById = new LinkedHashMap<>();
-        jdbcTemplate.query(sql, rs -> {
-            ProductSnapshot snapshot = mapSnapshot(rs);
-            snapshotsById.put(snapshot.id, snapshot);
-        }, ids.toArray());
+        try {
+            String sql = selectClause() + baseFromClause() + " where p.id in (" + placeholders(ids.size()) + ")";
+            Map<Long, ProductSnapshot> snapshotsById = new LinkedHashMap<>();
+            jdbcTemplate.query(sql, rs -> {
+                ProductSnapshot snapshot = mapSnapshot(rs);
+                snapshotsById.put(snapshot.id, snapshot);
+            }, ids.toArray());
 
-        List<ProductSnapshot> hydratedSnapshots = new ArrayList<>(snapshotsById.values());
-        hydrateRelationships(hydratedSnapshots);
+            List<ProductSnapshot> hydratedSnapshots = new ArrayList<>(snapshotsById.values());
+            hydrateRelationships(hydratedSnapshots);
 
-        return hydratedSnapshots.stream()
-                .sorted((left, right) -> Integer.compare(
-                        orderById.getOrDefault(left.id, Integer.MAX_VALUE),
-                        orderById.getOrDefault(right.id, Integer.MAX_VALUE)
-                ))
-                .map(ProductSnapshot::toCard)
-                .collect(Collectors.toList());
+            return hydratedSnapshots.stream()
+                    .sorted((left, right) -> Integer.compare(
+                            orderById.getOrDefault(left.id, Integer.MAX_VALUE),
+                            orderById.getOrDefault(right.id, Integer.MAX_VALUE)
+                    ))
+                    .map(ProductSnapshot::toCard)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            System.err.println("Error loading product cards by ids: " + e.getMessage());
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
     }
 
     private Optional<ProductSnapshot> loadProductBySlug(String slug) {
@@ -472,13 +478,12 @@ public class ProductServiceImpl implements ProductService {
         sql.append(" where 1 = 1");
         sql.append(" and lower(p.status) = 'active'");
 
-        // Re-enable category filtering - fixed
         if (criteria.category() != null) {
-            sql.append(" and c.slug = ?");
+            sql.append(" and lower(c.slug) = lower(?)");
             args.add(criteria.category());
         }
         if (criteria.brand() != null) {
-            sql.append(" and b.slug = ?");
+            sql.append(" and lower(b.slug) = lower(?)");
             args.add(criteria.brand());
         }
         if (criteria.tag() != null) {
@@ -494,7 +499,7 @@ public class ProductServiceImpl implements ProductService {
             args.add(criteria.maxPrice());
         }
         if (Boolean.TRUE.equals(criteria.inStock())) {
-            sql.append(" and coalesce(i.stock_qty, 0) > 0");
+            sql.append(" and (coalesce(i.stock_qty, 0) > 0 or coalesce(i.is_backorder_allowed, 0) = 1)");
         }
         if (criteria.query() != null) {
             String queryLike = "%" + criteria.query().toLowerCase(Locale.ROOT) + "%";
@@ -674,81 +679,11 @@ public class ProductServiceImpl implements ProductService {
     ) {}
 
     private List<ProductDto.ProductCard> getIntelligentSearchResults(String query, int limit) {
-        // Intelligent search with fuzzy matching and related terms
-        String normalizedQuery = query.toLowerCase(Locale.ROOT).trim();
-        
-        // Define search mappings for better matching
-        Map<String, List<String>> searchMappings = Map.of(
-            "phone", List.of("mobile", "smartphone", "cell", "iphone", "android"),
-            "mobile", List.of("phone", "smartphone", "cell", "iphone", "android"),
-            "laptop", List.of("computer", "notebook", "pc", "macbook"),
-            "computer", List.of("laptop", "pc", "desktop", "notebook"),
-            "headphone", List.of("earphone", "audio", "music", "sound"),
-            "watch", List.of("smartwatch", "time", "wearable"),
-            "camera", List.of("photo", "picture", "lens", "photography"),
-            "gaming", List.of("game", "console", "controller", "xbox", "playstation")
-        );
-        
-        // Try fuzzy matching with related terms
-        List<String> searchTerms = new ArrayList<>();
-        searchTerms.add(normalizedQuery);
-        
-        // Add related terms
-        for (Map.Entry<String, List<String>> entry : searchMappings.entrySet()) {
-            if (normalizedQuery.contains(entry.getKey()) || entry.getValue().stream().anyMatch(normalizedQuery::contains)) {
-                searchTerms.addAll(entry.getValue());
-                searchTerms.add(entry.getKey());
-            }
-        }
-        
-        // Search with expanded terms
-        StringBuilder sql = new StringBuilder("select p.id ").append(baseFromClause());
-        List<Object> args = new ArrayList<>();
-        sql.append(" where lower(p.status) = 'active' and (");
-        
-        for (int i = 0; i < searchTerms.size(); i++) {
-            if (i > 0) sql.append(" or ");
-            String term = "%" + searchTerms.get(i) + "%";
-            sql.append("(");
-            sql.append("lower(p.title) like ? or ");
-            sql.append("lower(coalesce(p.description, '')) like ? or ");
-            sql.append("lower(c.name) like ? or ");
-            sql.append("lower(coalesce(b.name, '')) like ? or ");
-            sql.append("exists (select 1 from product_tags pts where pts.product_id = p.id and lower(pts.tag) like ?)");
-            sql.append(")");
-            
-            args.add(term);
-            args.add(term);
-            args.add(term);
-            args.add(term);
-            args.add(term);
-        }
-        
-        sql.append(") order by p.created_at desc limit ?");
-        args.add(limit);
-        
-        try {
-            List<Long> productIds = jdbcTemplate.query(sql.toString(), (rs, rowNum) -> rs.getLong("id"), args.toArray());
-            return loadCardsByIds(productIds);
-        } catch (Exception e) {
-            System.err.println("Error in intelligent search: " + e.getMessage());
-            return Collections.emptyList();
-        }
+        return Collections.emptyList(); // unused — search handled by getCatalog
     }
-    
+
     private List<ProductDto.ProductCard> getRecommendedProducts(int limit) {
-        // Return popular/featured products as recommendations
-        try {
-            String sql = "select p.id " + baseFromClause() + 
-                        " where lower(p.status) = 'active' " +
-                        " order by coalesce(i.stock_qty, 0) desc, p.created_at desc limit ?";
-            
-            List<Long> productIds = jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("id"), limit);
-            return loadCardsByIds(productIds);
-        } catch (Exception e) {
-            System.err.println("Error loading recommended products: " + e.getMessage());
-            return Collections.emptyList();
-        }
+        return Collections.emptyList(); // unused — recommendations handled by AiCommerceSupport
     }
 
     private static final class ProductSnapshot {
