@@ -16,7 +16,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+        ex.printStackTrace();
+        String msg = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+        if (ex.getCause() != null) msg += " | cause: " + ex.getCause().getMessage();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Something went wrong"));
+                .body(new ErrorResponse(msg));
     }
 }
