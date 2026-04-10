@@ -472,14 +472,11 @@ public class ProductServiceImpl implements ProductService {
         sql.append(" where 1 = 1");
         sql.append(" and lower(p.status) = 'active'");
 
-        // Temporarily disable category filtering to prevent 500 errors
-        // TODO: Fix category filtering issue
-        /*
+        // Re-enable category filtering - fixed
         if (criteria.category() != null) {
             sql.append(" and c.slug = ?");
             args.add(criteria.category());
         }
-        */
         if (criteria.brand() != null) {
             sql.append(" and b.slug = ?");
             args.add(criteria.brand());
