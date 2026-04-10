@@ -148,6 +148,12 @@ export class ProductApiService {
     );
   }
 
+  getSearchSuggestions(query: string, limit = 10): Observable<string[]> {
+    return this.http.get<string[]>(`${this.api}/search/suggestions`, { 
+      params: this.toParams({ q: query, limit }) 
+    });
+  }
+
   getProduct(slug: string, relatedLimit = 4): Observable<ProductDetailResponse> {
     return this.http.get<ProductDetailResponse>(`${this.api}/${encodeURIComponent(slug)}`, {
       params: this.toParams({ relatedLimit })

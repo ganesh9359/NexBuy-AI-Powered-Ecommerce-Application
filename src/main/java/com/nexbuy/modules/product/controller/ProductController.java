@@ -1,6 +1,7 @@
 package com.nexbuy.modules.product.controller;
 
 import com.nexbuy.modules.product.dto.ProductDto;
+import com.nexbuy.modules.product.search.ProductSearchService;
 import com.nexbuy.modules.product.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +17,11 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductSearchService productSearchService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, ProductSearchService productSearchService) {
         this.productService = productService;
+        this.productSearchService = productSearchService;
     }
 
     @GetMapping("/home")
@@ -71,6 +74,14 @@ public class ProductController {
             @RequestParam(defaultValue = "4") int limit
     ) {
         return ResponseEntity.ok(productService.getRelatedProducts(slug, limit));
+    }
+
+    @GetMapping("/search/suggestions")
+    public ResponseEntity<List<String>> getSearchSuggestions(
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        return ResponseEntity.ok(productSearchService.getSearchSuggestions(q, limit));
     }
 
     @GetMapping("/{slug}")

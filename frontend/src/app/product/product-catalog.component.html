@@ -170,9 +170,36 @@
 
           <ng-template #emptyTpl>
             <div class="empty-state">
-              <h3>No matching products</h3>
-              <p>Try clearing a filter or exploring a different category.</p>
-              <button class="pill" type="button" (click)="clearFilters()">Reset filters</button>
+              <div class="empty-icon">
+                <span class="material-icon">search_off</span>
+              </div>
+              <h3>{{ activeQuery ? 'No products found for "' + activeQuery + '"' : 'No matching products' }}</h3>
+              <p *ngIf="activeQuery">We couldn't find any products matching your search. Here are some suggestions:</p>
+              <p *ngIf="!activeQuery">Try clearing a filter or exploring a different category.</p>
+              
+              <div class="empty-suggestions" *ngIf="activeQuery">
+                <button type="button" class="suggestion-chip" (click)="searchSimilar('phones')">
+                  <span class="material-icon">smartphone</span>
+                  Try "phones"
+                </button>
+                <button type="button" class="suggestion-chip" (click)="searchSimilar('laptops')">
+                  <span class="material-icon">laptop</span>
+                  Try "laptops"
+                </button>
+                <button type="button" class="suggestion-chip" (click)="searchSimilar('headphones')">
+                  <span class="material-icon">headphones</span>
+                  Try "headphones"
+                </button>
+                <button type="button" class="suggestion-chip" (click)="searchSimilar('watches')">
+                  <span class="material-icon">watch</span>
+                  Try "watches"
+                </button>
+              </div>
+              
+              <div class="empty-actions">
+                <button class="pill" type="button" (click)="clearFilters()">Reset filters</button>
+                <button class="btn-ghost" type="button" (click)="goToCategory('')">Browse all products</button>
+              </div>
             </div>
           </ng-template>
 

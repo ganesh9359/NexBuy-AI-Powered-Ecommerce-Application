@@ -86,7 +86,8 @@ export class AiService {
     return this.http.post<AiVoiceSearchResponse>(`${this.api}/voice-search`, { transcript }).pipe(
       map((response) => ({
         ...response,
-        products: (response.products || []).map((product) => this.normalizeProduct(product))
+        products: (response.products || []).map((product) => this.normalizeProduct(product)),
+        followUps: response.followUps || this.getDefaultFollowUps()
       }))
     );
   }
@@ -95,7 +96,8 @@ export class AiService {
     return this.http.post<AiVoiceSearchResponse>(`${this.api}/search-assist`, { transcript }).pipe(
       map((response) => ({
         ...response,
-        products: (response.products || []).map((product) => this.normalizeProduct(product))
+        products: (response.products || []).map((product) => this.normalizeProduct(product)),
+        followUps: response.followUps || this.getDefaultFollowUps()
       }))
     );
   }
@@ -110,9 +112,19 @@ export class AiService {
       map((response) => ({
         ...response,
         interpretation: response.interpretation || undefined,
-        products: (response.products || []).map((product) => this.normalizeProduct(product))
+        products: (response.products || []).map((product) => this.normalizeProduct(product)),
+        followUps: response.followUps || this.getDefaultFollowUps()
       }))
     );
+  }
+
+  private getDefaultFollowUps(): string[] {
+    return [
+      'Show me similar products',
+      'Filter by price range',
+      'Show products in stock',
+      'Browse by category'
+    ];
   }
 
   private normalizeChatResponse(response: AiChatResponse): AiChatResponse {

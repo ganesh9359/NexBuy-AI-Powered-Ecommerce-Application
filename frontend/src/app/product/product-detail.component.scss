@@ -300,23 +300,47 @@
 
   .purchase-panel {
     position: static;
+    order: 1;
+  }
+
+  .gallery-panel {
+    order: 2;
+  }
+
+  .info-panel {
+    order: 3;
+  }
+
+  .related-panel {
+    order: 4;
   }
 }
 
 @media (max-width: 720px) {
-  .hero-media {
-    height: 340px;
+  .detail-shell {
+    gap: 1rem;
+    padding-top: 1rem;
   }
 
-  .meta-grid,
-  .fact-list,
-  .related-grid {
-    grid-template-columns: 1fr;
+  .breadcrumbs {
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+
+  .hero-media {
+    height: 280px;
+    border-radius: 20px;
+  }
+
+  .thumb-row {
+    gap: 0.5rem;
+    justify-content: center;
   }
 
   .thumb {
-    width: 68px;
-    height: 68px;
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
   }
 
   .gallery-panel,
@@ -324,8 +348,148 @@
   .info-panel,
   .related-panel,
   .state-card {
-    padding: 0.9rem;
-    border-radius: 22px;
+    padding: 0.8rem;
+    border-radius: 20px;
+  }
+
+  .purchase-panel h1 {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  .description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .price-row {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .price-row strong {
+    font-size: 1.6rem;
+  }
+
+  .stock-row {
+    justify-content: center;
+  }
+
+  .purchase-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .purchase-actions .pill,
+  .purchase-actions .btn-ghost {
+    width: 100%;
+    min-height: 50px;
+    font-size: 1rem;
+  }
+
+  .signin-hint,
+  .cart-notice {
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .tag-row {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .tag-chip {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .meta-grid,
+  .fact-list {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .meta-grid div,
+  .fact-card {
+    padding: 0.8rem;
+    border-radius: 16px;
+    text-align: center;
+  }
+
+  .info-panel h2 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .info-panel p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .section-head h2 {
+    font-size: 1.4rem;
+  }
+
+  .related-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .related-card {
+    padding: 0.7rem;
+    border-radius: 18px;
+  }
+
+  .image-wrap {
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+  }
+
+  .title-link {
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  .meta-line {
+    font-size: 0.8rem;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-footer strong {
+    font-size: 1.1rem;
+  }
+
+  .state-card {
+    text-align: center;
+  }
+
+  .state-card h3 {
+    font-size: 1.2rem;
+  }
+
+  .state-card p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .state-card .pill {
+    width: 100%;
+    max-width: 280px;
   }
 }
 

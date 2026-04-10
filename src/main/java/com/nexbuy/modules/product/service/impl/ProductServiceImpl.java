@@ -2,6 +2,7 @@ package com.nexbuy.modules.product.service.impl;
 
 import com.nexbuy.exception.CustomException;
 import com.nexbuy.modules.product.dto.ProductDto;
+import com.nexbuy.modules.product.search.ProductSearchService;
 import com.nexbuy.modules.product.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,9 +32,11 @@ public class ProductServiceImpl implements ProductService {
     private static final int MAX_HOME_LIMIT = 12;
 
     private final JdbcTemplate jdbcTemplate;
+    private final ProductSearchService productSearchService;
 
-    public ProductServiceImpl(JdbcTemplate jdbcTemplate) {
+    public ProductServiceImpl(JdbcTemplate jdbcTemplate, ProductSearchService productSearchService) {
         this.jdbcTemplate = jdbcTemplate;
+        this.productSearchService = productSearchService;
     }
 
     @Override
@@ -140,7 +143,8 @@ public class ProductServiceImpl implements ProductService {
                                                  String sort,
                                                  int page,
                                                  int size) {
-        return getCatalog(query, category, brand, tag, minPrice, maxPrice, inStock, sort, page, size);
+        // Use enhanced search service for better results
+        return productSearchService.enhancedSearch(query, category, brand, tag, minPrice, maxPrice, inStock, sort, page, size);
     }
 
     @Override
@@ -660,7 +664,83 @@ public class ProductServiceImpl implements ProductService {
         return normalized == null ? null : normalized.toLowerCase(Locale.ROOT);
     }
 
-    private record CatalogCriteria(String query,
+    private List<ProductDto.ProductCard> getIntelligentSearchResults(String query, int limit) {
+        // Intelligent search with fuzzy matching and related terms
+        String normalizedQuery = query.toLowerCase(Locale.ROOT).trim();
+        
+        // Define search mappings for better matching
+        Map<String, List<String>> searchMappings = Map.of(
+            "phone", List.of("mobile", "smartphone", "cell", "iphone", "android"),
+            "mobile", List.of("phone", "smartphone", "cell", "iphone", "android"),
+            "laptop", List.of("computer", "notebook", "pc", "macbook"),
+            "computer", List.of("laptop", "pc", "desktop", "notebook"),
+            "headphone", List.of("earphone", "audio", "music", "sound"),
+            "watch", List.of("smartwatch", "time", "wearable"),
+            "camera", List.of("photo", "picture", "lens", "photography"),
+            "gaming", List.of("game", "console", "controller", "xbox", "playstation")
+        );
+        
+        // Try fuzzy matching with related terms
+        List<String> searchTerms = new ArrayList<>();
+        searchTerms.add(normalizedQuery);
+        
+        // Add related terms
+        for (Map.Entry<String, List<String>> entry : searchMappings.entrySet()) {
+            if (normalizedQuery.contains(entry.getKey()) || entry.getValue().stream().anyMatch(normalizedQuery::contains)) {
+                searchTerms.addAll(entry.getValue());
+                searchTerms.add(entry.getKey());
+            }
+        }
+        
+        // Search with expanded terms
+        StringBuilder sql = new StringBuilder("select p.id ").append(baseFromClause());
+        List<Object> args = new ArrayList<>();
+        sql.append(" where lower(p.status) = 'active' and (");
+        
+        for (int i = 0; i < searchTerms.size(); i++) {
+            if (i > 0) sql.append(" or ");
+            String term = "%" + searchTerms.get(i) + "%";
+            sql.append("(");
+            sql.append("lower(p.title) like ? or ");
+            sql.append("lower(coalesce(p.description, '')) like ? or ");
+            sql.append("lower(c.name) like ? or ");
+            sql.append("lower(coalesce(b.name, '')) like ? or ");
+            sql.append("exists (select 1 from product_tags pts where pts.product_id = p.id and lower(pts.tag) like ?)");
+            sql.append(")");
+            
+            args.add(term);
+            args.add(term);
+            args.add(term);
+            args.add(term);
+            args.add(term);
+        }
+        
+        sql.append(") order by p.created_at desc limit ?");
+        args.add(limit);
+        
+        try {
+            List<Long> productIds = jdbcTemplate.query(sql.toString(), (rs, rowNum) -> rs.getLong("id"), args.toArray());
+            return loadCardsByIds(productIds);
+        } catch (Exception e) {
+            System.err.println("Error in intelligent search: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+    
+    private List<ProductDto.ProductCard> getRecommendedProducts(int limit) {
+        // Return popular/featured products as recommendations
+        try {
+            String sql = "select p.id " + baseFromClause() + 
+                        " where lower(p.status) = 'active' " +
+                        " order by coalesce(i.stock_qty, 0) desc, p.created_at desc limit ?";
+            
+            List<Long> productIds = jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("id"), limit);
+            return loadCardsByIds(productIds);
+        } catch (Exception e) {
+            System.err.println("Error loading recommended products: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
                                    String category,
                                    String brand,
                                    String tag,

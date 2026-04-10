@@ -135,6 +135,10 @@ export class ProductCatalogComponent implements OnInit {
     this.applyFilters();
   }
 
+  searchSimilar(query: string): void {
+    this.router.navigate(['/product/search'], { queryParams: { q: query } });
+  }
+
   goToCategory(slug: string): void {
     this.router.navigate(['/product/category', slug]);
   }

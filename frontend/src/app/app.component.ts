@@ -35,6 +35,9 @@ export class AppComponent implements OnInit, OnDestroy {
   ];
   storeCategories: CatalogCategory[] = this.buildFallbackCategories();
   searchQuery = '';
+  searchSuggestions: string[] = [];
+  showSuggestions = false;
+  searchSuggestionsLoading = false;
   isMenuOpen = false;
   isLight = true;
   voiceListening = false;
@@ -158,6 +161,54 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isLight = !this.isLight;
     this.applyThemeClass();
     localStorage.setItem('nexbuy-theme', this.isLight ? 'light' : 'dark');
+  }
+
+  onSearchInput(): void {
+    const query = this.searchQuery.trim();
+    if (query.length >= 2) {
+      this.loadSearchSuggestions(query);
+    } else {
+      this.clearSearchSuggestions();
+    }
+  }
+
+  onSearchFocus(): void {
+    if (this.searchQuery.trim().length >= 2) {
+      this.showSuggestions = true;
+    }
+  }
+
+  onSearchBlur(): void {
+    // Delay hiding suggestions to allow clicking on them
+    setTimeout(() => {
+      this.showSuggestions = false;
+    }, 200);
+  }
+
+  selectSuggestion(suggestion: string): void {
+    this.searchQuery = suggestion;
+    this.clearSearchSuggestions();
+    this.submitSearch();
+  }
+
+  clearSearchSuggestions(): void {
+    this.searchSuggestions = [];
+    this.showSuggestions = false;
+    this.searchSuggestionsLoading = false;
+  }
+
+  private loadSearchSuggestions(query: string): void {
+    this.searchSuggestionsLoading = true;
+    this.productApi.getSearchSuggestions(query, 8).subscribe({
+      next: (suggestions) => {
+        this.searchSuggestions = suggestions;
+        this.showSuggestions = suggestions.length > 0;
+        this.searchSuggestionsLoading = false;
+      },
+      error: () => {
+        this.clearSearchSuggestions();
+      }
+    });
   }
 
   submitSearch(): void {
