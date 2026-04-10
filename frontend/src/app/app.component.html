@@ -7,9 +7,8 @@
         <small>Smart shopping</small>
       </div>
     </div>
-    <button class="menu-toggle material-icon" (click)="isMenuOpen = !isMenuOpen" [attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'">{{ isMenuOpen ? 'close' : 'menu' }}</button>
-    <nav [class.open]="isMenuOpen" class="main-nav" [attr.aria-hidden]="!isMenuOpen">
-      <a *ngFor="let link of navLinks" [routerLink]="link.path" routerLinkActive="active" (click)="isMenuOpen=false">{{ link.label }}</a>
+    <nav class="main-nav">
+      <a *ngFor="let link of navLinks" [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
     </nav>
     <div class="search">
       <div class="search-field" [class.with-image]="!!imagePreview" [class.with-suggestions]="showSuggestions">

@@ -722,150 +722,117 @@ main {
 
 @media (max-width: 900px) {
   .shell {
-    grid-template-columns: auto auto 1fr;
-    padding: 0.8rem 1rem;
-    gap: 0.8rem;
-  }
-
-  nav {
-    background: rgba(20, 15, 12, 0.98);
-    border-bottom: 1px solid var(--line);
-    border-radius: 0 0 20px 20px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(20px);
-  }
-
-  nav a {
-    padding: 0.75rem 1rem;
-    margin: 0.25rem 0;
-    border-radius: 12px;
-    font-size: 1.05rem;
-    transition: all 0.2s ease;
-  }
-
-  nav a:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(4px);
-  }
-
-  .search {
-    grid-column: 1 / -1;
-    order: 5;
-    margin-top: 0.5rem;
-    min-height: 52px;
-    padding: 0.4rem 0.5rem 0.4rem 1rem;
-  }
-
-  .search input {
-    font-size: 1rem;
-  }
-
-  .search .search-actions button {
-    width: 42px;
-    height: 42px;
-    font-size: 1.1rem;
-  }
-
-  .actions {
     display: flex;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0.65rem 1rem 0;
     gap: 0.5rem;
   }
 
-  .category-pop {
-    display: none;
-  }
+  /* Row 1: Logo | nav-links | actions */
+  .brand { flex: 0 0 auto; }
 
-  .actions .profile {
+  .main-nav {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.25rem;
+    scrollbar-width: none;
+  }
+  .main-nav::-webkit-scrollbar { display: none; }
+
+  nav {
+    position: static;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    padding: 0;
+    flex-direction: row;
     display: flex;
   }
 
-  .icon-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 1.1rem;
+  nav a {
+    padding: 0.45rem 0.7rem;
+    margin: 0;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: background 0.2s ease;
   }
 
-  .menu-toggle {
-    width: 44px;
-    height: 44px;
-    font-size: 1.2rem;
-    border-radius: 12px;
+  nav a:hover { transform: none; }
+
+  .actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .category-pop { display: none; }
+
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .menu-toggle { display: none; }
+
+  /* Row 2: Search bar — full width, sticky as part of header */
+  .search {
+    flex: 0 0 100%;
+    order: 10;
+    min-height: 48px;
+    padding: 0.35rem 0.45rem 0.35rem 0.9rem;
+    margin: 0.4rem 0 0.65rem;
+    border-radius: 999px;
+  }
+
+  .search input { font-size: 1rem; }
+
+  .search .search-actions button {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 640px) {
   .shell {
-    padding: 0.7rem 0.9rem;
-    gap: 0.6rem;
+    padding: 0.6rem 0.75rem 0;
+    gap: 0.4rem;
   }
 
-  .brand {
-    gap: 0.5rem;
+  .brand { gap: 0.4rem; }
+  .brand img { width: 34px; height: 34px; }
+  .brand .title { font-size: 0.88rem; }
+  .brand small { display: none; }
+
+  nav a {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.82rem;
   }
 
-  .brand img {
-    width: 38px;
-    height: 38px;
-  }
-
-  .brand .title {
-    font-size: 0.95rem;
-  }
-
-  .brand small {
-    display: none;
-  }
+  .icon-btn { width: 36px; height: 36px; font-size: 0.95rem; }
 
   .search {
-    min-height: 48px;
-    padding: 0.35rem 0.4rem 0.35rem 0.9rem;
-    border-radius: 24px;
-  }
-
-  .search input {
-    font-size: 0.95rem;
-  }
-
-  .search .search-actions {
-    gap: 0.2rem;
-  }
-
-  .search .search-actions button {
-    width: 38px;
-    height: 38px;
-    font-size: 1rem;
-  }
-
-  .icon-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-  }
-
-  .menu-toggle {
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
-  }
-
-  .footer {
-    padding-top: 2.2rem;
-  }
-
-  .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .newsletter {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .newsletter input {
     min-height: 44px;
+    padding: 0.3rem 0.4rem 0.3rem 0.8rem;
+    margin-bottom: 0.55rem;
   }
+
+  .search input { font-size: 0.92rem; }
+  .search .search-actions { gap: 0.15rem; }
+  .search .search-actions button { width: 34px; height: 34px; font-size: 0.95rem; }
+
+  .footer { padding-top: 2.2rem; }
+  .footer-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .newsletter { grid-template-columns: 1fr; gap: 0.75rem; }
+  .newsletter input { min-height: 44px; }
 }
 
 .search {
