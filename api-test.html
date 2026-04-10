@@ -8,35 +8,48 @@
     <div id="status">Testing...</div>
     <div id="result"></div>
     
+    <h2>Test Results:</h2>
+    <div id="tests"></div>
+    
     <script>
         const API_BASE = 'https://nexbuy-backend-8k6a.onrender.com';
         
-        async function testAPI() {
+        async function runTests() {
             const statusDiv = document.getElementById('status');
             const resultDiv = document.getElementById('result');
+            const testsDiv = document.getElementById('tests');
             
-            try {
-                statusDiv.innerHTML = 'Testing categories endpoint...';
-                
-                const response = await fetch(`${API_BASE}/products/categories`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const tests = [
+                { name: 'Categories', url: '/products/categories' },
+                { name: 'Home Feed', url: '/products/home' },
+                { name: 'All Products', url: '/products/catalog' },
+                { name: 'Electronics Category', url: '/products/catalog?category=electronics' },
+                { name: 'Mobiles Category', url: '/products/catalog?category=mobiles' }
+            ];
+            
+            statusDiv.innerHTML = 'Running tests...';
+            let results = [];
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(`${API_BASE}${test.url}`);
+                    const status = response.ok ? '✅ PASS' : `❌ FAIL (${response.status})`;
+                    results.push(`<p><strong>${test.name}:</strong> ${status}</p>`);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        results.push(`<p style="margin-left: 20px; color: red;">Error: ${errorText}</p>`);
+                    }
+                } catch (error) {
+                    results.push(`<p><strong>${test.name}:</strong> ❌ FAIL (${error.message})</p>`);
                 }
-                
-                const data = await response.json();
-                
-                statusDiv.innerHTML = '✅ API Connection Successful!';
-                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-                
-            } catch (error) {
-                statusDiv.innerHTML = '❌ API Connection Failed!';
-                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
-                console.error('API Test Error:', error);
             }
+            
+            statusDiv.innerHTML = 'Tests completed!';
+            testsDiv.innerHTML = results.join('');
         }
         
-        testAPI();
+        runTests();
     </script>
 </body>
 </html>
