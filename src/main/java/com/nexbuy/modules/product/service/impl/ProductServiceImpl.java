@@ -617,7 +617,7 @@ public class ProductServiceImpl implements ProductService {
                        pv.currency,
                        coalesce(i.stock_qty, 0) as stock_qty,
                        coalesce(i.low_stock_threshold, 5) as low_stock_threshold,
-                       coalesce(i.is_backorder_allowed, false) as is_backorder_allowed
+                       coalesce(i.is_backorder_allowed, 0) as is_backorder_allowed
                 """;
     }
 
@@ -628,7 +628,7 @@ public class ProductServiceImpl implements ProductService {
                 left join brands b on b.id = p.brand_id
                 left join product_variants pv on pv.id = (
                     select pv2.id from product_variants pv2 where pv2.product_id = p.id order by pv2.id asc limit 1
-                )
+                ) 
                 left join inventory i on i.variant_id = pv.id
                 """;
     }

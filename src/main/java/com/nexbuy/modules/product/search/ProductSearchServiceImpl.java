@@ -189,7 +189,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                        pv.compare_at_cents, pv.currency,
                        COALESCE(i.stock_qty, 0) as stock_qty,
                        COALESCE(i.low_stock_threshold, 5) as low_stock_threshold,
-                       COALESCE(i.is_backorder_allowed, false) as is_backorder_allowed
+                       COALESCE(i.is_backorder_allowed, 0) as is_backorder_allowed
                 FROM products p
                 JOIN categories c ON c.id = p.category_id
                 LEFT JOIN brands b ON b.id = p.brand_id
