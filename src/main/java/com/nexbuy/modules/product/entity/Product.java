@@ -1,6 +1,7 @@
 package com.nexbuy.modules.product.entity;
 
 import com.nexbuy.enums.ProductStatus;
+import com.nexbuy.enums.ProductStatusConverter;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -29,7 +30,7 @@ public class Product {
     @Column(name = "cover_image", length = 255)
     private String coverImage;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ProductStatusConverter.class)
     @Column(nullable = false, length = 16)
     private ProductStatus status = ProductStatus.ACTIVE;
 
