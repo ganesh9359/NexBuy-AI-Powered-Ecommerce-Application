@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NexBuy API Test</title>
+</head>
+<body>
+    <h1>NexBuy API Connection Test</h1>
+    <div id="status">Testing...</div>
+    <div id="result"></div>
+    
+    <script>
+        const API_BASE = 'https://nexbuy-backend-8k6a.onrender.com';
+        
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                statusDiv.innerHTML = 'Testing categories endpoint...';
+                
+                const response = await fetch(`${API_BASE}/products/categories`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                statusDiv.innerHTML = '✅ API Connection Successful!';
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+            } catch (error) {
+                statusDiv.innerHTML = '❌ API Connection Failed!';
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('API Test Error:', error);
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

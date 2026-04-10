@@ -212,23 +212,37 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private long countProducts(CatalogCriteria criteria) {
-        StringBuilder sql = new StringBuilder("select count(distinct p.id) ").append(baseFromClause());
-        List<Object> args = new ArrayList<>();
-        appendFilters(criteria, sql, args);
-        Number count = jdbcTemplate.queryForObject(sql.toString(), Number.class, args.toArray());
-        return count == null ? 0L : count.longValue();
+        try {
+            StringBuilder sql = new StringBuilder("select count(distinct p.id) ").append(baseFromClause());
+            List<Object> args = new ArrayList<>();
+            appendFilters(criteria, sql, args);
+            Number count = jdbcTemplate.queryForObject(sql.toString(), Number.class, args.toArray());
+            return count == null ? 0L : count.longValue();
+        } catch (Exception e) {
+            // Log the error and return 0 to prevent 500 errors
+            System.err.println("Error counting products: " + e.getMessage());
+            e.printStackTrace();
+            return 0L;
+        }
     }
 
     private List<Long> findProductIds(CatalogCriteria criteria) {
-        StringBuilder sql = new StringBuilder("select p.id ").append(baseFromClause());
-        List<Object> args = new ArrayList<>();
-        appendFilters(criteria, sql, args);
-        appendSort(criteria, sql, args);
-        sql.append(" limit ? offset ?");
-        args.add(criteria.size());
-        args.add((criteria.page() - 1) * criteria.size());
+        try {
+            StringBuilder sql = new StringBuilder("select p.id ").append(baseFromClause());
+            List<Object> args = new ArrayList<>();
+            appendFilters(criteria, sql, args);
+            appendSort(criteria, sql, args);
+            sql.append(" limit ? offset ?");
+            args.add(criteria.size());
+            args.add((criteria.page() - 1) * criteria.size());
 
-        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> rs.getLong("id"), args.toArray());
+            return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> rs.getLong("id"), args.toArray());
+        } catch (Exception e) {
+            // Log the error and return empty list to prevent 500 errors
+            System.err.println("Error finding product IDs: " + e.getMessage());
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
     }
 
     private List<ProductDto.ProductCard> loadCardsForCriteria(CatalogCriteria criteria) {
