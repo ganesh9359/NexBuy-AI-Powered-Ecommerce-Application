@@ -390,68 +390,64 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private List<ProductDto.BrandSummary> loadBrandFacets(CatalogCriteria criteria) {
-        StringBuilder sql = new StringBuilder("""
-                select b.id, b.name, b.slug, count(distinct p.id) as product_count
-                """).append(baseFromClause());
-        List<Object> args = new ArrayList<>();
-        appendFilters(criteria, sql, args);
-        sql.append("""
-                 and b.id is not null
-                 group by b.id, b.name, b.slug
-                 having count(distinct p.id) > 0
-                 order by product_count desc, b.name asc
-                 limit 12
-                """);
-
-        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> new ProductDto.BrandSummary(
-                rs.getLong("id"),
-                rs.getString("name"),
-                rs.getString("slug"),
-                rs.getLong("product_count")
-        ), args.toArray());
+        try {
+            String base = "select b.id, b.name, b.slug, count(distinct p.id) as product_count " + baseFromClause();
+            StringBuilder sql = new StringBuilder(base);
+            List<Object> args = new ArrayList<>();
+            appendFilters(criteria, sql, args);
+            sql.append(" and b.id is not null group by b.id, b.name, b.slug having count(distinct p.id) > 0 order by product_count desc, b.name asc limit 12");
+            return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> new ProductDto.BrandSummary(
+                    rs.getLong("id"),
+                    rs.getString("name"),
+                    rs.getString("slug"),
+                    rs.getLong("product_count")
+            ), args.toArray());
+        } catch (Exception e) {
+            System.err.println("loadBrandFacets error: " + e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     private List<ProductDto.TagSummary> loadTagFacets(CatalogCriteria criteria) {
-        StringBuilder sql = new StringBuilder("""
-                select pt.tag, count(distinct p.id) as product_count
-                from product_tags pt
-                join products p on p.id = pt.product_id
-                join categories c on c.id = p.category_id
-                left join brands b on b.id = p.brand_id
-                left join product_variants pv on pv.id = (
-                    select pv2.id from product_variants pv2 where pv2.product_id = p.id order by pv2.id asc limit 1
-                )
-                left join inventory i on i.variant_id = pv.id
-                """);
-        List<Object> args = new ArrayList<>();
-        appendProductPredicates(criteria, sql, args);
-        sql.append("""
-                 group by pt.tag
-                 order by product_count desc, pt.tag asc
-                 limit 16
-                """);
-
-        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> new ProductDto.TagSummary(
-                rs.getString("tag"),
-                rs.getLong("product_count")
-        ), args.toArray());
+        try {
+            StringBuilder sql = new StringBuilder(
+                "select pt.tag, count(distinct p.id) as product_count" +
+                " from product_tags pt" +
+                " join products p on p.id = pt.product_id" +
+                " join categories c on c.id = p.category_id" +
+                " left join brands b on b.id = p.brand_id" +
+                " left join product_variants pv on pv.id = (select pv2.id from product_variants pv2 where pv2.product_id = p.id order by pv2.id asc limit 1)" +
+                " left join inventory i on i.variant_id = pv.id");
+            List<Object> args = new ArrayList<>();
+            appendProductPredicates(criteria, sql, args);
+            sql.append(" group by pt.tag order by product_count desc, pt.tag asc limit 16");
+            return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> new ProductDto.TagSummary(
+                    rs.getString("tag"),
+                    rs.getLong("product_count")
+            ), args.toArray());
+        } catch (Exception e) {
+            System.err.println("loadTagFacets error: " + e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     private ProductDto.PriceRange loadPriceRange(CatalogCriteria criteria) {
-        StringBuilder sql = new StringBuilder("select min(pv.price_cents) as min_cents, max(pv.price_cents) as max_cents ")
-                .append(baseFromClause());
-        List<Object> args = new ArrayList<>();
-        appendFilters(criteria, sql, args);
-
-        return jdbcTemplate.query(sql.toString(), rs -> {
-            if (!rs.next()) {
-                return new ProductDto.PriceRange(null, null);
-            }
-            return new ProductDto.PriceRange(
-                    rs.getObject("min_cents", Integer.class),
-                    rs.getObject("max_cents", Integer.class)
-            );
-        });
+        try {
+            String base = "select min(pv.price_cents) as min_cents, max(pv.price_cents) as max_cents " + baseFromClause();
+            StringBuilder sql = new StringBuilder(base);
+            List<Object> args = new ArrayList<>();
+            appendFilters(criteria, sql, args);
+            return jdbcTemplate.query(sql.toString(), rs -> {
+                if (!rs.next()) return new ProductDto.PriceRange(null, null);
+                return new ProductDto.PriceRange(
+                        rs.getObject("min_cents", Integer.class),
+                        rs.getObject("max_cents", Integer.class)
+                );
+            }, args.toArray());
+        } catch (Exception e) {
+            System.err.println("loadPriceRange error: " + e.getMessage());
+            return new ProductDto.PriceRange(null, null);
+        }
     }
 
     private List<ProductDto.TagSummary> loadTrendingTags(int limit) {
