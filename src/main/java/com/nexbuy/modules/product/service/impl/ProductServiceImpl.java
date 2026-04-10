@@ -475,12 +475,12 @@ public class ProductServiceImpl implements ProductService {
         sql.append(" and lower(p.status) = 'active'");
 
         if (criteria.category() != null) {
-            sql.append(" and lower(c.slug) = lower(?)");
-            args.add(criteria.category());
+            sql.append(" and c.slug = ?");
+            args.add(criteria.category().toLowerCase(Locale.ROOT));
         }
         if (criteria.brand() != null) {
-            sql.append(" and lower(b.slug) = lower(?)");
-            args.add(criteria.brand());
+            sql.append(" and b.slug = ?");
+            args.add(criteria.brand().toLowerCase(Locale.ROOT));
         }
         if (criteria.tag() != null) {
             sql.append(" and exists (select 1 from product_tags ptf where ptf.product_id = p.id and lower(ptf.tag) = ?)");
